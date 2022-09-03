@@ -11,8 +11,10 @@ import prototyp.survival.gameserver.gameserver.command.JoinCommand;
 import prototyp.survival.gameserver.gameserver.command.StartCommand;
 import prototyp.survival.gameserver.gameserver.data.GameState;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
+import prototyp.survival.gameserver.gameserver.listener.JoinListener;
 import prototyp.survival.gameserver.gameserver.listener.MoveListener;
 import prototyp.survival.gameserver.gameserver.listener.PlayerDeathListener;
+import prototyp.survival.gameserver.gameserver.listener.QuitListener;
 
 import java.util.*;
 
@@ -48,6 +50,8 @@ public final class GameServer extends JavaPlugin {
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(new MoveListener(this), this);
         Bukkit.getPluginManager().registerEvents(new PlayerDeathListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
+        Bukkit.getPluginManager().registerEvents(new QuitListener(this), this);
         Bukkit.getPluginCommand("join").setExecutor(new JoinCommand(this));
         Bukkit.getPluginCommand("start").setExecutor(new StartCommand(this));
 
