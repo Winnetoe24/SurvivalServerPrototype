@@ -1,5 +1,6 @@
 package prototyp.survival.gameserver.gameserver.command;
 
+import com.sk89q.worldedit.WorldEditException;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -75,6 +76,11 @@ public class StartCommand implements CommandExecutor {
                 lobbyTimer.add(() -> {
                     gameServer.getBlocked().clear();
                     gameServer.setState(GameState.LOBBY);
+                    try {
+                        gameServer.zurNeuenWelt();
+                    } catch (WorldEditException e) {
+                       e.printStackTrace();
+                    }
                     System.out.println("return to Lobby");
                 });
                 lobbyTimer.start();
@@ -91,7 +97,7 @@ public class StartCommand implements CommandExecutor {
             boolean toNear = false;
             Location location;
             do {
-                location = new Location(Bukkit.getWorlds().get(0), random.nextInt(19)*16,60,random.nextInt(19)*16);
+                location = new Location(gameServer.getGameworld(), random.nextInt(19)*16,60,random.nextInt(19)*16);
                 for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
                     if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().distance(location) < 200) {
                         toNear = true;

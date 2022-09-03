@@ -1,12 +1,21 @@
 package prototyp.survival.gameserver.gameserver;
 
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.bukkit.BukkitWorld;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BlockVector;
 import prototyp.survival.gameserver.gameserver.command.JoinCommand;
 import prototyp.survival.gameserver.gameserver.command.StartCommand;
 import prototyp.survival.gameserver.gameserver.data.GameState;
@@ -16,12 +25,16 @@ import prototyp.survival.gameserver.gameserver.listener.MoveListener;
 import prototyp.survival.gameserver.gameserver.listener.PlayerDeathListener;
 import prototyp.survival.gameserver.gameserver.listener.QuitListener;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 
 @Getter
 public final class GameServer extends JavaPlugin {
 
-
+    private World gameworld;
+    private int round = 0;
     @Setter
     private GameState state = GameState.LOBBY;
 
@@ -48,12 +61,38 @@ public final class GameServer extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        gameworld = Bukkit.getWorlds().get(0);
         Bukkit.getPluginManager().registerEvents(new MoveListener(this), this);
         Bukkit.getPluginManager().registerEvents(new PlayerDeathListener(this), this);
         Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
         Bukkit.getPluginManager().registerEvents(new QuitListener(this), this);
         Bukkit.getPluginCommand("join").setExecutor(new JoinCommand(this));
         Bukkit.getPluginCommand("start").setExecutor(new StartCommand(this));
+    }
+
+    public void zurNeuenWelt() throws WorldEditException {
+        BukkitWorld bukkitWorld = new BukkitWorld(gameworld);
+        for (Gruppe gruppe : gruppes) {
+            CuboidRegion region = new CuboidRegion(
+                    BlockVector3.at(gruppe.getSpawn().getX()-16, -64, gruppe.getSpawn().getZ()-16),
+                    BlockVector3.at(gruppe.getSpawn().getX()+15, 320, gruppe.getSpawn().getZ()+15));
+            BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
+
+            ForwardExtentCopy forwardExtentCopy = new ForwardExtentCopy(
+                    bukkitWorld, region, clipboard, region.getMinimumPoint()
+            );
+            // configure here
+            Operations.complete(forwardExtentCopy);
+            gruppe.setClipboard(clipboard);
+            gruppe.setSpawn(null);
+        }
+        Random random = new Random();
+        gameworld= new WorldCreator("gameworld_round_" + round)
+                .environment(World.Environment.values()[random.nextInt(3)])
+                .type(WorldType.values()[random.nextInt(WorldType.values().length)])
+                .createWorld();
+
+
 
     }
 

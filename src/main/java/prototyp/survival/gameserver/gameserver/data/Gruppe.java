@@ -1,5 +1,6 @@
 package prototyp.survival.gameserver.gameserver.data;
 
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Chunk;
@@ -19,6 +20,7 @@ public class Gruppe {
     private Location spawn;
     private int[][] chunks;
     private long points = 0;
+    private BlockArrayClipboard clipboard;
 
     public void disableBeacons() {
         World world = this.getSpawn().getWorld();
