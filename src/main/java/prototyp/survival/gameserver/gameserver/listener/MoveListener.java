@@ -1,7 +1,6 @@
 package prototyp.survival.gameserver.gameserver.listener;
 
 import lombok.AllArgsConstructor;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,7 +18,7 @@ public class MoveListener implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         event.setCancelled(gameServer.getState() != GameState.RUNNING);
-        Block block = event.getTo().add(0, -0.1, 0).getBlock();
+        Block block = event.getTo().clone().add(0, -0.1, 0).getBlock();
         Optional<Gruppe> own = gameServer.getGruppe(event.getPlayer());
         Optional<Gruppe> over = gameServer.getGruppe(block);
         if (over.isEmpty()) return;
