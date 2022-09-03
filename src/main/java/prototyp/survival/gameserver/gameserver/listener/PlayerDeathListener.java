@@ -2,17 +2,11 @@ package prototyp.survival.gameserver.gameserver.listener;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import prototyp.survival.gameserver.gameserver.GameServer;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @RequiredArgsConstructor
 public class PlayerDeathListener implements Listener {
