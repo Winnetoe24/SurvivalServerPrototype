@@ -40,7 +40,8 @@ public class StartCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (label == "start") {
+        System.out.println("label:"+label);
+        if (label.equals("start") || command.getName().contains("start")) {
             if (gameServer.getState() != GameState.LOBBY) return false;
 
             gameServer.setState(GameState.STARTING);
@@ -63,7 +64,7 @@ public class StartCommand implements CommandExecutor {
                 fightTimer.start();
             });
             timer.start();
-        }else if (label.equals("skip")) {
+        }else if (label.equals("skip") || command.getName().contains("skip")) {
             if (gameServer.getBlocked().contains((Player) sender)){
                 sender.sendMessage("Du bist schon ausgeschieden");
                 return false;
