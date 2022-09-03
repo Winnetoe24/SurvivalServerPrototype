@@ -24,6 +24,7 @@ public class MoveListener implements Listener {
         if (over.isEmpty()) return;
         if (own.isEmpty()) return;
         if (own.get() != over.get()) {
+            System.out.println("Beacon Kill:"+event.getPlayer().name());
             over.get().getPlayers().forEach(player -> {
                 if (!gameServer.getBlocked().contains(player)) {
                     player.damage(100000000, event.getPlayer());
