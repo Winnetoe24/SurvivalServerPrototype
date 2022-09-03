@@ -80,7 +80,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>RELEASE</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <!-- This depends on the Bukkit API, Use this if you need BukkitAdapter -->
         <dependency>
