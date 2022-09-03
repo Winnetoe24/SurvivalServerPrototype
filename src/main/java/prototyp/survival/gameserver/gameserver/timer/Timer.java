@@ -37,4 +37,9 @@ public class Timer {
     public void remove(Runnable runnable) {
         callbacks.remove(runnable);
     }
+
+    public void end() {
+        if (bukkitTask != null) bukkitTask.cancel();
+        callbacks.clear();
+    }
 }

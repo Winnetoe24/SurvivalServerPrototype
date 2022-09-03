@@ -68,7 +68,9 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
         Bukkit.getPluginManager().registerEvents(new QuitListener(this), this);
         Bukkit.getPluginCommand("join").setExecutor(new JoinCommand(this));
-        Bukkit.getPluginCommand("start").setExecutor(new StartCommand(this));
+        StartCommand startCommand = new StartCommand(this);
+        Bukkit.getPluginCommand("start").setExecutor(startCommand);
+        Bukkit.getPluginCommand("skip").setExecutor(startCommand);
     }
 
     public void zurNeuenWelt() throws WorldEditException {

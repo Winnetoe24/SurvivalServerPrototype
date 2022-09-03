@@ -8,7 +8,6 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -20,10 +19,7 @@ import prototyp.survival.gameserver.gameserver.data.GameState;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
 import prototyp.survival.gameserver.gameserver.timer.Timer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
@@ -43,60 +39,83 @@ public class StartCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (gameServer.getState() != GameState.LOBBY) return false;
+        if (label == "start") {
+            if (gameServer.getState() != GameState.LOBBY) return false;
 
-        gameServer.setState(GameState.STARTING);
-        Set<Gruppe> gruppen = gameServer.getGruppes();
-        gruppen.forEach(this::calSpawns);
-        for (Gruppe gruppe : gruppen) {
-            pasteChunks(gruppe);
-            buildSpawn(gruppe);
-            setChunks(gruppe);
-            gruppe.disableBeacons();
-            preparePlayers(gruppe);
-        }
+            gameServer.setState(GameState.STARTING);
+            Set<Gruppe> gruppen = gameServer.getGruppes();
+            gruppen.forEach(this::calSpawns);
+            for (Gruppe gruppe : gruppen) {
+                pasteChunks(gruppe);
+                buildSpawn(gruppe);
+                setChunks(gruppe);
+                gruppe.disableBeacons();
+                preparePlayers(gruppe);
+            }
 
-        gameServer.setState(GameState.RUNNING);
-        System.out.println("State Running:"+gameServer.getState());
-        timer.add(() -> {
-            gameServer.getGruppes().forEach(Gruppe::enableBeacons);
+            gameServer.setState(GameState.RUNNING);
+            System.out.println("State Running:" + gameServer.getState());
+            timer.add(() -> {
+                gameServer.getGruppes().forEach(Gruppe::enableBeacons);
 
-            fightTimer.add(() -> {
-                gameServer.setState(GameState.ENDING);
-                // TODO: Chunk speichern
-                gameServer.getGruppes().forEach(gruppe -> {
-                    gruppe.getPlayers().forEach(player -> {
-                        if (!gruppe.inside(player)) {
-                            player.damage(1000000000, player);
-                            gruppe.setPoints(gruppe.getPoints() - 100);
-                        }
-                    });
-                });
-                gameServer.getGruppes().forEach(gruppe -> {
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        player.sendMessage("Gruppe: " + gruppe.getGroupID() + " hat " + gruppe.getPoints());
-                    }
-                });
-                Bukkit.getOnlinePlayers().forEach(player -> {
-                    player.setGameMode(GameMode.SPECTATOR);
-                });
-
-                lobbyTimer.add(() -> {
-                    gameServer.getBlocked().clear();
-                    gameServer.setState(GameState.LOBBY);
-                    try {
-                        gameServer.zurNeuenWelt();
-                    } catch (WorldEditException e) {
-                       e.printStackTrace();
-                    }
-                    System.out.println("return to Lobby");
-                });
-                lobbyTimer.start();
+                fightTimer.add(this::endGame);
+                fightTimer.start();
             });
-            fightTimer.start();
-        });
-        timer.start();
+            timer.start();
+        }else if (label.equals("skip")) {
+            if (gameServer.getBlocked().contains((Player) sender)){
+                sender.sendMessage("Du bist schon ausgeschieden");
+                return false;
+            }
+            Optional<Gruppe> playerGruppeOpt = gameServer.getGruppe((Player) sender);
+            if (playerGruppeOpt.isEmpty()) return false;
+            Gruppe playerGruppe = playerGruppeOpt.get();
+            for (Gruppe gruppe : gameServer.getGruppes()) {
+                if (gruppe == playerGruppe) continue;
+                for (Player player : gruppe.getPlayers()) {
+                    if (!gameServer.getBlocked().contains(player)) {
+                        sender.sendMessage("Es sind noch nicht alle anderen Spieler tot");
+                        return false;
+                    }
+                }
+            }
+            fightTimer.end();
+            endGame();
+        }
         return false;
+    }
+
+    private void endGame() {
+        Bukkit.broadcastMessage("Spiel beendet");
+        gameServer.setState(GameState.ENDING);
+        gameServer.getGruppes().forEach(gruppe -> {
+            gruppe.getPlayers().forEach(player -> {
+                if (!gruppe.inside(player)) {
+                    player.damage(1000000000, player);
+                    gruppe.setPoints(gruppe.getPoints() - 100);
+                }
+            });
+        });
+        gameServer.getGruppes().forEach(gruppe -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.sendMessage("Gruppe: " + gruppe.getGroupID() + " hat " + gruppe.getPoints());
+            }
+        });
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            player.setGameMode(GameMode.SPECTATOR);
+        });
+
+        lobbyTimer.add(() -> {
+            gameServer.getBlocked().clear();
+            gameServer.setState(GameState.LOBBY);
+            try {
+                gameServer.zurNeuenWelt();
+            } catch (WorldEditException e) {
+               e.printStackTrace();
+            }
+            System.out.println("return to Lobby");
+        });
+        lobbyTimer.start();
     }
 
     private void pasteChunks(Gruppe gruppe) {
