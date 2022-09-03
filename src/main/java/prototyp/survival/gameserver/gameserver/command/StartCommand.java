@@ -120,6 +120,7 @@ public class StartCommand implements CommandExecutor {
             boolean toNear = false;
             Location location;
             do {
+                toNear = false;
                 location = new Location(gameServer.getGameworld(), random.nextInt(19)*16,60,random.nextInt(19)*16);
                 for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
                     if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().distance(location) < 200) {
