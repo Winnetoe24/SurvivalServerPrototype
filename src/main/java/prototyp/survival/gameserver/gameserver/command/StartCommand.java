@@ -145,7 +145,7 @@ public class StartCommand implements CommandExecutor {
                 toNear = false;
                 location = new Location(gameServer.getGameworld(), (random.nextInt(spawnBound*2)-spawnBound)*16,60,(random.nextInt(spawnBound*2)-spawnBound)*16);
                 for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
-                    if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().distance(location) < 400) {
+                    if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().getWorld().equals(gameServer.getGameworld()) && gameServerGruppe.getSpawn().distance(location) < 400) {
                         toNear = true;
                         break;
                     }
