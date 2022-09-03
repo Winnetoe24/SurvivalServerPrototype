@@ -30,7 +30,7 @@ public class StartCommand implements CommandExecutor {
 
         this.gameServer = gameServer;
 
-        lobbyTimer = new Timer(gameServer, 30, TimeUnit.SECONDS);
+        lobbyTimer = new Timer(gameServer, 1, TimeUnit.SECONDS);
         timer = new Timer(gameServer, 7, TimeUnit.MINUTES);
         fightTimer = new Timer(gameServer, 15, TimeUnit.MINUTES);
     }
@@ -54,7 +54,7 @@ public class StartCommand implements CommandExecutor {
                 gruppe.disableBeacons();
                 preparePlayers(gruppe);
             }
-
+            gameServer.discardOldWorld();
             gameServer.setState(GameState.RUNNING);
             System.out.println("State Running:" + gameServer.getState());
             timer.add(() -> {

@@ -25,6 +25,7 @@ import prototyp.survival.gameserver.gameserver.listener.MoveListener;
 import prototyp.survival.gameserver.gameserver.listener.PlayerDeathListener;
 import prototyp.survival.gameserver.gameserver.listener.QuitListener;
 
+import java.security.PublicKey;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Random;
@@ -34,6 +35,7 @@ import java.util.Set;
 public final class GameServer extends JavaPlugin {
 
     private World gameworld;
+    private World oldWorld = null;
     private int round = 0;
     @Setter
     private GameState state = GameState.LOBBY;
@@ -77,6 +79,9 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginCommand("skip").setExecutor(startCommand);
     }
 
+    public void discardOldWorld() {
+        Bukkit.unloadWorld(oldWorld,false);
+    }
     public void zurNeuenWelt() throws WorldEditException {
         round++;
         BukkitWorld bukkitWorld = new BukkitWorld(gameworld);
@@ -94,6 +99,7 @@ public final class GameServer extends JavaPlugin {
             gruppe.setClipboard(clipboard);
         }
         Random random = new Random();
+        oldWorld = gameworld;
         gameworld= new WorldCreator("gameworld_round_" + round+"_"+random.nextInt())
                 .environment(World.Environment.values()[random.nextInt(3)])
                 .type(WorldType.values()[random.nextInt(WorldType.values().length)])
