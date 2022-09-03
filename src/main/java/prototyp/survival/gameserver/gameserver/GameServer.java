@@ -101,7 +101,7 @@ public final class GameServer extends JavaPlugin {
         Random random = new Random();
         oldWorld = gameworld;
         gameworld= new WorldCreator("gameworld_round_" + round+"_"+random.nextInt())
-                .environment(World.Environment.values()[random.nextInt(3)])
+//                .environment(World.Environment.values()[random.nextInt(3)])
                 .type(WorldType.values()[random.nextInt(WorldType.values().length)])
                 .createWorld();
 
