@@ -73,6 +73,7 @@ public class StartCommand implements CommandExecutor {
                 });
 
                 lobbyTimer.add(() -> {
+                    gameServer.getBlocked().clear();
                     gameServer.setState(GameState.LOBBY);
                     System.out.println("return to Lobby");
                 });

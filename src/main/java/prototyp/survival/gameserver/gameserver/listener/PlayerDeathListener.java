@@ -10,25 +10,26 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import prototyp.survival.gameserver.gameserver.GameServer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class PlayerDeathListener implements Listener {
     private final GameServer gameServer;
-    private List<Player> blocked = new ArrayList<>();
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (event.getPlayer().getKiller() != null) {
             gameServer.getGruppe(event.getPlayer()).ifPresent(gruppe -> gruppe.setPoints(gruppe.getPoints() - 100));
             gameServer.getGruppe(event.getPlayer().getKiller()).ifPresent(gruppe -> gruppe.setPoints(gruppe.getPoints() + 100));
-            blocked.add(event.getEntity());
+            gameServer.getBlocked().add(event.getEntity());
         }
     }
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        if (blocked.contains(event.getPlayer())) {
+        if (gameServer.getBlocked().contains(event.getPlayer())) {
             event.getPlayer().setGameMode(GameMode.SPECTATOR);
         } else {
              gameServer.getGruppe(event.getPlayer()).ifPresent(gruppe -> event.setRespawnLocation(gruppe.getSpawn()));
