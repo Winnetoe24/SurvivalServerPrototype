@@ -71,6 +71,7 @@ public final class GameServer extends JavaPlugin {
     }
 
     public void zurNeuenWelt() throws WorldEditException {
+        round++;
         BukkitWorld bukkitWorld = new BukkitWorld(gameworld);
         for (Gruppe gruppe : gruppes) {
             CuboidRegion region = new CuboidRegion(
