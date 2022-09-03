@@ -12,6 +12,7 @@ import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import prototyp.survival.gameserver.gameserver.GameServer;
@@ -135,7 +136,7 @@ public class StartCommand implements CommandExecutor {
 
     private void calSpawns(Gruppe gruppe) {
         int spawnBound = 19 + gameServer.getGruppes().size()-1;
-        if (gruppe.getSpawn() == null) {
+
             Random random = new Random();
             boolean toNear = false;
             Location location;
@@ -149,10 +150,13 @@ public class StartCommand implements CommandExecutor {
                     }
                 }
             }while (toNear);
-            location = gameServer.getGameworld().getHighestBlockAt(location).getLocation();
+            if (gruppe.getSpawn() == null){
+                location = gameServer.getGameworld().getHighestBlockAt(location).getLocation();
+            }else {
+                location.setY(gruppe.getSpawn().getY());
+            }
             System.out.println("Location:"+location);
             gruppe.setSpawn(location);
-        }
     }
 
     private void buildSpawn(Gruppe gruppe) {

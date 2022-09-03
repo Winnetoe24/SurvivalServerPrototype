@@ -51,6 +51,7 @@ public final class GameServer extends JavaPlugin {
     public Optional<Gruppe> getGruppe(Block block) {
         if (block.getType() != Material.BEACON) return Optional.empty();
         for (Gruppe gruppe : gruppes) {
+            if (gruppe.getSpawn() == null) continue;
             if (block.getLocation().distanceSquared(gruppe.getSpawn()) > 2.25) continue;
             if (gruppe.getSpawn().clone().add(-1, 0, 0).equals(block.getLocation())) return Optional.of(gruppe);
             if (gruppe.getSpawn().clone().add(-1, 0, -1).equals(block.getLocation())) return Optional.of(gruppe);
@@ -88,7 +89,6 @@ public final class GameServer extends JavaPlugin {
             // configure here
             Operations.complete(forwardExtentCopy);
             gruppe.setClipboard(clipboard);
-            gruppe.setSpawn(null);
         }
         Random random = new Random();
         gameworld= new WorldCreator("gameworld_round_" + round)
