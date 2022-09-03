@@ -1,6 +1,13 @@
 package prototyp.survival.gameserver.gameserver.command;
 
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.bukkit.BukkitWorld;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -42,6 +49,7 @@ public class StartCommand implements CommandExecutor {
         Set<Gruppe> gruppen = gameServer.getGruppes();
         gruppen.forEach(this::calSpawns);
         for (Gruppe gruppe : gruppen) {
+            pasteChunks(gruppe);
             buildSpawn(gruppe);
             setChunks(gruppe);
             gruppe.disableBeacons();
@@ -89,6 +97,21 @@ public class StartCommand implements CommandExecutor {
         });
         timer.start();
         return false;
+    }
+
+    private void pasteChunks(Gruppe gruppe) {
+        if (gruppe.getClipboard() == null) return;
+        BukkitWorld bukkitWorld = new BukkitWorld(gameServer.getGameworld());
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(bukkitWorld)) {
+            Operation operation = new ClipboardHolder(gruppe.getClipboard())
+                    .createPaste(editSession)
+                    .to(BlockVector3.at(gruppe.getSpawn().getX()-16, -64, gruppe.getSpawn().getZ()-16))
+                    // configure here
+                    .build();
+            Operations.complete(operation);
+        } catch (WorldEditException e) {
+            e.printStackTrace();
+        }
     }
 
     private void calSpawns(Gruppe gruppe) {
