@@ -67,41 +67,41 @@ public class StartCommand implements CommandExecutor {
             long l1 = System.currentTimeMillis();
             broadcastStart();
             long l2 = System.currentTimeMillis();
-            System.out.println("l2-l1:"+(l2-l1));
+            System.out.println("l2-l1:" + (l2 - l1));
             gameServer.regenerateWorld();
             long l3 = System.currentTimeMillis();
-            System.out.println("l3-l2:"+(l3-l2));
+            System.out.println("l3-l2:" + (l3 - l2));
 
             Set<Gruppe> gruppen = gameServer.getGruppes();
             gruppen.forEach(this::calSpawns);
             long l4 = System.currentTimeMillis();
-            System.out.println("l4-l3:"+(l4-l3));
+            System.out.println("l4-l3:" + (l4 - l3));
             for (Gruppe gruppe : gruppen) {
                 compassTarget(gruppe);
                 long l6 = System.currentTimeMillis();
-                System.out.println("l6-l4:"+(l6-l4));
+                System.out.println("l6-l4:" + (l6 - l4));
                 pasteChunks(gruppe);
                 long l7 = System.currentTimeMillis();
-                System.out.println("l7-l6:"+(l7-l6));
+                System.out.println("l7-l6:" + (l7 - l6));
                 buildSpawn(gruppe);
                 long l8 = System.currentTimeMillis();
-                System.out.println("l8-l7:"+(l8-l7));
+                System.out.println("l8-l7:" + (l8 - l7));
                 setChunks(gruppe);
                 long l9 = System.currentTimeMillis();
-                System.out.println("l9-l8:"+(l9-l8));
+                System.out.println("l9-l8:" + (l9 - l8));
                 gruppe.disableBeacons();
                 long l10 = System.currentTimeMillis();
-                System.out.println("l10-l9:"+(l10-l9));
+                System.out.println("l10-l9:" + (l10 - l9));
                 preparePlayers(gruppe);
                 long l11 = System.currentTimeMillis();
-                System.out.println("l11-l10:"+(l11-l10));
+                System.out.println("l11-l10:" + (l11 - l10));
             }
 
             gameServer.setState(GameState.RUNNING);
             broadcastRun();
             countdown.add(integer -> broadcastTimeLeftToBeacons(7 - integer));
             long l12 = System.currentTimeMillis();
-            System.out.println("l12-l4:"+(l12-l4));
+            System.out.println("l12-l4:" + (l12 - l4));
             timer.add(() -> {
                 gameServer.getGruppes().forEach(Gruppe::enableBeacons);
 
@@ -114,8 +114,8 @@ public class StartCommand implements CommandExecutor {
             countdown.start();
             timer.start();
             long l13 = System.currentTimeMillis();
-            System.out.println("l13-l12:"+(l13-l12));
-            System.out.println("l13-l1:"+(l13-l1));
+            System.out.println("l13-l12:" + (l13 - l12));
+            System.out.println("l13-l1:" + (l13 - l1));
 
 
         } else if (label.equals("skip") || command.getName().contains("skip")) {
@@ -248,24 +248,32 @@ public class StartCommand implements CommandExecutor {
         boolean toNear = false;
         Location location;
         int runs = 0;
+        long m1 = System.currentTimeMillis();
+        long m3;
         do {
             toNear = false;
             location = new Location(gameServer.getGameworld(), (random.nextInt(spawnBound * 2) - spawnBound) * 16, 60, (random.nextInt(spawnBound * 2) - spawnBound) * 16);
+            long m2 = System.currentTimeMillis();
+            System.out.println("m2-m1:"+(m2-m1));
             for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
                 if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().getWorld().getUID().equals(gameServer.getGameworld().getUID()) && gameServerGruppe.getSpawn().distanceSquared(location) < 90000) {
                     toNear = true;
                     break;
                 }
             }
+            m3 = System.currentTimeMillis();
+            System.out.println("m3-m2:"+(m3-m2));
             runs++;
         } while (toNear);
         if (gruppe.getSpawn() == null) {
-            location = gameServer.getGameworld().getHighestBlockAt(location).getLocation();
+            location.setY(gameServer.getGameworld().getHighestBlockYAt(location));
         } else {
             location.setY(gruppe.getSpawn().getY());
         }
+        long m4 = System.currentTimeMillis();
+        System.out.println("m4-m3:"+(m4-m3));
         System.out.println("Location:" + location);
-        System.out.println("runs:"+runs);
+        System.out.println("runs:" + runs);
         gruppe.setSpawn(location);
     }
 
