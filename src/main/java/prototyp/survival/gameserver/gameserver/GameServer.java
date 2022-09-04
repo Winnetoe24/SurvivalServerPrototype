@@ -140,13 +140,12 @@ public final class GameServer extends JavaPlugin {
     }
 
     private WorldType getWorldType(Random random) {
-        int i;
-        WorldType value;
-        do {
-            i = random.nextInt(WorldType.values().length + 10);
-            value = WorldType.values()[i % WorldType.values().length];
-        } while (i > 4 && value == WorldType.FLAT);
-        return value;
+        int i = random.nextInt(10);
+        int length = WorldType.values().length;
+        if (i > length && WorldType.values()[i % length] == WorldType.FLAT) {
+            i += random.nextInt(2)-1;
+        }
+        return WorldType.values()[i];
     }
 
     @Override
