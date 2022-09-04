@@ -10,7 +10,6 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -31,6 +30,8 @@ import java.util.*;
 public final class GameServer extends JavaPlugin {
 
     private World gameworld;
+    private World gameworldNether;
+    private World gameworldEnd;
 
     @Setter
     private Audience audience = Audience.empty();
@@ -79,6 +80,7 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new JoinListener(this), this);
         Bukkit.getPluginManager().registerEvents(new QuitListener(this), this);
         Bukkit.getPluginManager().registerEvents(new AdvancementListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new PortalListener(this), this);
         Bukkit.getPluginCommand("join").setExecutor(new JoinCommand(this));
         StartCommand startCommand = new StartCommand(this);
         Bukkit.getPluginCommand("start").setExecutor(startCommand);
@@ -87,23 +89,15 @@ public final class GameServer extends JavaPlugin {
     }
 
     public void regenerateWorld() {
-        if (gameworld != null) {
-            Bukkit.unloadWorld(gameworld, false);
-            try {
-                Files.walk(gameworld.getWorldFolder().toPath())
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        unloadWorld(gameworld);
+        unloadWorld(gameworldNether);
+        unloadWorld(gameworldEnd);
         Random random = new Random();
         String worldname = "gameworld_round_" + round + "_" + random.nextInt();
-        new WorldCreator(worldname)
+        gameworldNether = new WorldCreator(worldname+"_nether")
                 .environment(World.Environment.NETHER)
                 .createWorld();
-        new WorldCreator(worldname)
+        gameworldEnd = new WorldCreator(worldname+"_end")
                 .environment(World.Environment.THE_END)
                 .createWorld();
         gameworld = new WorldCreator(worldname)
@@ -111,6 +105,20 @@ public final class GameServer extends JavaPlugin {
                 .type(getWorldType(random))
                 .createWorld();
 
+    }
+
+    private void unloadWorld(World world) {
+        if (world != null) {
+            Bukkit.unloadWorld(world, false);
+            try {
+                Files.walk(world.getWorldFolder().toPath())
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void copyChunks() throws WorldEditException {

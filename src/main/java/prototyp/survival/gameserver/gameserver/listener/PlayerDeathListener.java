@@ -1,9 +1,11 @@
 package prototyp.survival.gameserver.gameserver.listener;
 
+import io.papermc.paper.event.entity.EntityPortalReadyEvent;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import prototyp.survival.gameserver.gameserver.GameServer;
@@ -32,4 +34,6 @@ public class PlayerDeathListener implements Listener {
              });
         }
     }
+
+
 }
