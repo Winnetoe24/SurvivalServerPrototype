@@ -21,5 +21,6 @@ public class QuitListener implements Listener {
                 gameServer.getGruppes().remove(gruppe);
             }
         });
+        gameServer.setAudience(gameServer.getAudience().filterAudience(audience -> audience != event.getPlayer()));
     }
 }

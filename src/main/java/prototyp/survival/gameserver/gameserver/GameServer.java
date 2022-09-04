@@ -9,6 +9,8 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -29,6 +31,9 @@ import java.util.*;
 public final class GameServer extends JavaPlugin {
 
     private World gameworld;
+
+    @Setter
+    private Audience audience = Audience.empty();
     private int round = 0;
     @Setter
     private GameState state = GameState.LOBBY;
@@ -62,6 +67,7 @@ public final class GameServer extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        audience = Audience.audience(Bukkit.getOnlinePlayers());
         if (Bukkit.getWorld("lobby") != null) {
             lobbyWorld = Bukkit.getWorld("lobby");
         } else {
@@ -77,6 +83,7 @@ public final class GameServer extends JavaPlugin {
         StartCommand startCommand = new StartCommand(this);
         Bukkit.getPluginCommand("start").setExecutor(startCommand);
         Bukkit.getPluginCommand("skip").setExecutor(startCommand);
+        startCommand.broadcastLobby();
     }
 
     public void regenerateWorld() {

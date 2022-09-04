@@ -1,6 +1,7 @@
 package prototyp.survival.gameserver.gameserver.listener;
 
 import lombok.AllArgsConstructor;
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
@@ -24,5 +25,6 @@ public class JoinListener implements Listener {
             location.setZ(0);
             event.getPlayer().teleport(location);
         }
+        gameServer.setAudience(Audience.audience(gameServer.getAudience(),event.getPlayer()));
     }
 }
