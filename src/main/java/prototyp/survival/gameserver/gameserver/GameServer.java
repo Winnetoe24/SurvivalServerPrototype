@@ -19,6 +19,10 @@ import prototyp.survival.gameserver.gameserver.data.GameState;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
 import prototyp.survival.gameserver.gameserver.listener.*;
 
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,7 +64,6 @@ public final class GameServer extends JavaPlugin {
     }
 
 
-
     @Override
     public void onEnable() {
         if (Bukkit.getWorld("lobby") != null) {
@@ -80,16 +83,18 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginCommand("skip").setExecutor(startCommand);
     }
 
-    public void regenerateWorld() {
-        Bukkit.unloadWorld(gameworld, false);
+    public void discardOldWorld() {
+        Bukkit.unloadWorld(oldWorld, false);
         try {
-            Files.walk(gameworld.getWorldFolder().toPath())
+            Files.walk(oldWorld.getWorldFolder().toPath())
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public void generateWorld() {
         Random random = new Random();
         gameworld = new WorldCreator("world")
 //                .environment(World.Environment.values()[random.nextInt(3)])
@@ -102,8 +107,8 @@ public final class GameServer extends JavaPlugin {
         BukkitWorld bukkitWorld = new BukkitWorld(gameworld);
         for (Gruppe gruppe : gruppes) {
             CuboidRegion region = new CuboidRegion(
-                    BlockVector3.at(gruppe.getSpawn().getX()-16, -64, gruppe.getSpawn().getZ()-16),
-                    BlockVector3.at(gruppe.getSpawn().getX()+15, 320, gruppe.getSpawn().getZ()+15));
+                    BlockVector3.at(gruppe.getSpawn().getX() - 16, -64, gruppe.getSpawn().getZ() - 16),
+                    BlockVector3.at(gruppe.getSpawn().getX() + 15, 320, gruppe.getSpawn().getZ() + 15));
             BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
 
             ForwardExtentCopy forwardExtentCopy = new ForwardExtentCopy(
@@ -113,6 +118,24 @@ public final class GameServer extends JavaPlugin {
             Operations.complete(forwardExtentCopy);
             gruppe.setClipboard(clipboard);
         }
+        Random random = new Random();
+        oldWorld = gameworld;
+        gameworld = new WorldCreator("gameworld_round_" + round + "_" + random.nextInt())
+//                .environment(World.Environment.values()[random.nextInt(3)])
+                .type(getValue(random))
+                .createWorld();
+
+
+    }
+
+    private WorldType getValue(Random random) {
+        int i;
+        WorldType value;
+        do {
+            i = random.nextInt(WorldType.values().length + 10);
+            value = WorldType.values()[i % WorldType.values().length];
+        } while (i > 4 && value == WorldType.FLAT);
+        return value;
     }
 
     @Override
