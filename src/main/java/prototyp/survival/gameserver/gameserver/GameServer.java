@@ -19,10 +19,6 @@ import prototyp.survival.gameserver.gameserver.data.GameState;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
 import prototyp.survival.gameserver.gameserver.listener.*;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,22 +79,20 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginCommand("skip").setExecutor(startCommand);
     }
 
-    public void discardOldWorld() {
-        Bukkit.unloadWorld(oldWorld, false);
+    public void regenerateWorld() {
+        Bukkit.unloadWorld(gameworld, false);
         try {
-            Files.walk(oldWorld.getWorldFolder().toPath())
+            Files.walk(gameworld.getWorldFolder().toPath())
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-    public void generateWorld() {
         Random random = new Random();
         gameworld = new WorldCreator("world")
 //                .environment(World.Environment.values()[random.nextInt(3)])
-                .type(WorldType.values()[random.nextInt(WorldType.values().length)])
+                .type(getValue(random))
                 .createWorld();
     }
 
@@ -118,14 +112,6 @@ public final class GameServer extends JavaPlugin {
             Operations.complete(forwardExtentCopy);
             gruppe.setClipboard(clipboard);
         }
-        Random random = new Random();
-        oldWorld = gameworld;
-        gameworld = new WorldCreator("gameworld_round_" + round + "_" + random.nextInt())
-//                .environment(World.Environment.values()[random.nextInt(3)])
-                .type(getValue(random))
-                .createWorld();
-
-
     }
 
     private WorldType getValue(Random random) {
