@@ -3,7 +3,6 @@ package prototyp.survival.gameserver.gameserver.listener;
 import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent;
 import io.papermc.paper.advancement.AdvancementDisplay;
 import lombok.AllArgsConstructor;
-import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
