@@ -89,27 +89,19 @@ public final class GameServer extends JavaPlugin {
         startCommand.broadcastLobby();
     }
 
+    public void discardWorld() {
+        unloadWorld(gameworld);
+        unloadWorld(gameworldNether);
+        unloadWorld(gameworldEnd);
+        gameworldNether = null;
+        gameworldEnd = null;
+    }
     public void regenerateWorld(Runnable runAfter) {
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-            unloadWorld(gameworld);
-            unloadWorld(gameworldNether);
-            unloadWorld(gameworldEnd);
-        });
+
 
         Random random = new Random();
         String worldname = "gameworld_round_" + round + "_" + random.nextInt();
-        Bukkit.getScheduler().runTaskLater(this, () -> {
-            audience.sendActionBar(Component.text("Erstelle Nether...", StartCommand.YELLOW));
-            gameworldNether = new WorldCreator(worldname+"_nether")
-                    .environment(World.Environment.NETHER)
-                    .createWorld();
-        },40L);
-        Bukkit.getScheduler().runTaskLater(this, () -> {
-            audience.sendActionBar(Component.text("Erstelle End...", StartCommand.YELLOW));
-            gameworldEnd = new WorldCreator(worldname+"_end")
-                    .environment(World.Environment.THE_END)
-                    .createWorld();
-        },80L);
+
         Bukkit.getScheduler().runTaskLater(this, () -> {
             audience.sendActionBar(Component.text("Erstelle Overworld...", StartCommand.YELLOW));
             gameworld = new WorldCreator(worldname)
@@ -118,9 +110,24 @@ public final class GameServer extends JavaPlugin {
                     .createWorld();
             audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
 
-            Bukkit.getScheduler().runTaskLater(this, runAfter,10L);
+            Bukkit.getScheduler().runTaskLater(this, runAfter, 10L);
         }, 120L);
 
+    }
+
+    public void generateNether() {
+        audience.sendActionBar(Component.text("Erstelle Nether...", StartCommand.YELLOW));
+        gameworldNether = new WorldCreator(gameworld.getName() + "_nether")
+                .environment(World.Environment.NETHER)
+                .createWorld();
+
+    }
+
+    public void generateEnd() {
+        audience.sendActionBar(Component.text("Erstelle End...", StartCommand.YELLOW));
+        gameworldEnd = new WorldCreator(gameworld.getName() + "_end")
+                .environment(World.Environment.THE_END)
+                .createWorld();
     }
 
     private void unloadWorld(World world) {
@@ -159,7 +166,7 @@ public final class GameServer extends JavaPlugin {
         int i = random.nextInt(10);
         int length = WorldType.values().length;
         if (i > length && WorldType.values()[i % length] == WorldType.FLAT) {
-            i += random.nextInt(2)-1;
+            i += random.nextInt(2) - 1;
         }
         return WorldType.values()[i % length];
     }
