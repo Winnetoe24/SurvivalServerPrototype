@@ -26,7 +26,10 @@ public class PlayerDeathListener implements Listener {
         if (gameServer.getBlocked().contains(event.getPlayer())) {
             event.getPlayer().setGameMode(GameMode.SPECTATOR);
         } else {
-             gameServer.getGruppe(event.getPlayer()).ifPresent(gruppe -> event.setRespawnLocation(gruppe.getSpawn()));
+             gameServer.getGruppe(event.getPlayer()).ifPresent(gruppe -> {
+                 event.setRespawnLocation(gruppe.getSpawn());
+                 event.getPlayer().setCompassTarget(gruppe.getSpawn());
+             });
         }
     }
 }

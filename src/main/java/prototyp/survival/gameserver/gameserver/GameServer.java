@@ -80,14 +80,16 @@ public final class GameServer extends JavaPlugin {
     }
 
     public void regenerateWorld() {
-        Bukkit.unloadWorld(gameworld, false);
-        try {
-            Files.walk(gameworld.getWorldFolder().toPath())
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (gameworld != null) {
+            Bukkit.unloadWorld(gameworld, false);
+            try {
+                Files.walk(gameworld.getWorldFolder().toPath())
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         Random random = new Random();
         gameworld = new WorldCreator("world")

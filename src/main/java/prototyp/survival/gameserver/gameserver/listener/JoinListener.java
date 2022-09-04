@@ -20,6 +20,8 @@ public class JoinListener implements Listener {
         if (gameServer.getState() == GameState.LOBBY) {
             Location location = event.getPlayer().getLocation().clone();
             location.setWorld(gameServer.getLobbyWorld());
+            location.setX(0);
+            location.setZ(0);
             event.getPlayer().teleport(location);
         }
     }
