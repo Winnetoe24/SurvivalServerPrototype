@@ -65,32 +65,34 @@ public class StartCommand implements CommandExecutor {
             skips = 0;
             gameServer.setState(GameState.STARTING);
             broadcastStart();
-            gameServer.regenerateWorld();
+            gameServer.regenerateWorld(() -> {
+                Set<Gruppe> gruppen = gameServer.getGruppes();
+                gruppen.forEach(this::calSpawns);
+                for (Gruppe gruppe : gruppen) {
+                    compassTarget(gruppe);
+                    pasteChunks(gruppe);
+                    buildSpawn(gruppe);
+                    setChunks(gruppe);
+                    gruppe.disableBeacons();
+                    preparePlayers(gruppe);
+                }
+                gameServer.setState(GameState.RUNNING);
+                broadcastRun();
+                countdown.add(integer -> broadcastTimeLeftToBeacons(7-integer));
+                timer.add(() -> {
+                    gameServer.getGruppes().forEach(Gruppe::enableBeacons);
 
-            Set<Gruppe> gruppen = gameServer.getGruppes();
-            gruppen.forEach(this::calSpawns);
-            for (Gruppe gruppe : gruppen) {
-                compassTarget(gruppe);
-                pasteChunks(gruppe);
-                buildSpawn(gruppe);
-                setChunks(gruppe);
-                gruppe.disableBeacons();
-                preparePlayers(gruppe);
-            }
-            gameServer.setState(GameState.RUNNING);
-            broadcastRun();
-            countdown.add(integer -> broadcastTimeLeftToBeacons(7-integer));
-            timer.add(() -> {
-                gameServer.getGruppes().forEach(Gruppe::enableBeacons);
-
-                countdown.end();
-                fightCountdown.add(integer -> broadcastTimeLeftToEnd(7-integer));
-                fightCountdown.start();
-                fightTimer.add(this::endGame);
-                fightTimer.start();
+                    countdown.end();
+                    fightCountdown.add(integer -> broadcastTimeLeftToEnd(7-integer));
+                    fightCountdown.start();
+                    fightTimer.add(this::endGame);
+                    fightTimer.start();
+                });
+                countdown.start();
+                timer.start();
             });
-            countdown.start();
-            timer.start();
+
+
         }else if (label.equals("skip") || command.getName().contains("skip")) {
             if (gameServer.getBlocked().contains((Player) sender)){
                 sender.sendMessage("Du bist schon ausgeschieden");

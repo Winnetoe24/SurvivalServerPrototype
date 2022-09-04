@@ -88,22 +88,26 @@ public final class GameServer extends JavaPlugin {
         startCommand.broadcastLobby();
     }
 
-    public void regenerateWorld() {
-        unloadWorld(gameworld);
-        unloadWorld(gameworldNether);
-        unloadWorld(gameworldEnd);
-        Random random = new Random();
-        String worldname = "gameworld_round_" + round + "_" + random.nextInt();
-        gameworldNether = new WorldCreator(worldname+"_nether")
-                .environment(World.Environment.NETHER)
-                .createWorld();
-        gameworldEnd = new WorldCreator(worldname+"_end")
-                .environment(World.Environment.THE_END)
-                .createWorld();
-        gameworld = new WorldCreator(worldname)
-                .environment(World.Environment.NORMAL)
-                .type(getWorldType(random))
-                .createWorld();
+    public void regenerateWorld(Runnable runAfter) {
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            unloadWorld(gameworld);
+            unloadWorld(gameworldNether);
+            unloadWorld(gameworldEnd);
+            Random random = new Random();
+            String worldname = "gameworld_round_" + round + "_" + random.nextInt();
+            gameworldNether = new WorldCreator(worldname+"_nether")
+                    .environment(World.Environment.NETHER)
+                    .createWorld();
+            gameworldEnd = new WorldCreator(worldname+"_end")
+                    .environment(World.Environment.THE_END)
+                    .createWorld();
+            gameworld = new WorldCreator(worldname)
+                    .environment(World.Environment.NORMAL)
+                    .type(getWorldType(random))
+                    .createWorld();
+            Bukkit.getScheduler().runTask(this, runAfter);
+        });
+
 
     }
 
