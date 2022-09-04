@@ -31,7 +31,7 @@ public class StartCommand implements CommandExecutor {
 
         lobbyTimer = new Timer(gameServer, 1, TimeUnit.SECONDS);
         timer = new Timer(gameServer, 7, TimeUnit.MINUTES);
-        fightTimer = new Timer(gameServer, 15, TimeUnit.MINUTES);
+        fightTimer = new Timer(gameServer, 7, TimeUnit.MINUTES);
     }
     private Timer timer;
     private Timer fightTimer;
