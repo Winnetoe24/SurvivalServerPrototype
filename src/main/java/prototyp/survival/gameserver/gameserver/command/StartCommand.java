@@ -40,7 +40,6 @@ public class StartCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        System.out.println("label:"+label);
         if (label.equals("start") || command.getName().contains("start")) {
             if (gameServer.getState() != GameState.LOBBY) return false;
 
@@ -50,6 +49,7 @@ public class StartCommand implements CommandExecutor {
             Set<Gruppe> gruppen = gameServer.getGruppes();
             gruppen.forEach(this::calSpawns);
             for (Gruppe gruppe : gruppen) {
+                compassTarget(gruppe);
                 pasteChunks(gruppe);
                 buildSpawn(gruppe);
                 setChunks(gruppe);
@@ -57,7 +57,6 @@ public class StartCommand implements CommandExecutor {
                 preparePlayers(gruppe);
             }
             gameServer.setState(GameState.RUNNING);
-            System.out.println("State Running:" + gameServer.getState());
             timer.add(() -> {
                 gameServer.getGruppes().forEach(Gruppe::enableBeacons);
 
@@ -127,6 +126,12 @@ public class StartCommand implements CommandExecutor {
             System.out.println("return to Lobby");
         });
         lobbyTimer.start();
+    }
+
+    private void compassTarget(Gruppe gruppe) {
+        for (Player player : gruppe.getPlayers()) {
+            player.setCompassTarget(gruppe.getSpawn());
+        }
     }
 
     private void pasteChunks(Gruppe gruppe) {
