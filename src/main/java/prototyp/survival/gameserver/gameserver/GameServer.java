@@ -161,7 +161,7 @@ public final class GameServer extends JavaPlugin {
         if (i > length && WorldType.values()[i % length] == WorldType.FLAT) {
             i += random.nextInt(2)-1;
         }
-        return WorldType.values()[i];
+        return WorldType.values()[i % length];
     }
 
     @Override
