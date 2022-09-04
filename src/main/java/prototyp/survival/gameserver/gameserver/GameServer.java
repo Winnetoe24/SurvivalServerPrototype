@@ -80,7 +80,16 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginCommand("skip").setExecutor(startCommand);
     }
 
-    public void generateWorld() {
+    public void regenerateWorld() {
+        Bukkit.unloadWorld(gameworld, false);
+        try {
+            Files.walk(gameworld.getWorldFolder().toPath())
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Random random = new Random();
         gameworld = new WorldCreator("world")
 //                .environment(World.Environment.values()[random.nextInt(3)])
@@ -88,7 +97,7 @@ public final class GameServer extends JavaPlugin {
                 .createWorld();
     }
 
-    public void zurNeuenWelt() throws WorldEditException {
+    public void copyChunks() throws WorldEditException {
         round++;
         BukkitWorld bukkitWorld = new BukkitWorld(gameworld);
         for (Gruppe gruppe : gruppes) {
@@ -103,16 +112,6 @@ public final class GameServer extends JavaPlugin {
             // configure here
             Operations.complete(forwardExtentCopy);
             gruppe.setClipboard(clipboard);
-        }
-
-        Bukkit.unloadWorld(gameworld, false);
-        try {
-            Files.walk(gameworld.getWorldFolder().toPath())
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

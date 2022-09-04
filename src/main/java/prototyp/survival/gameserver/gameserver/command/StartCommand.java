@@ -12,7 +12,6 @@ import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import prototyp.survival.gameserver.gameserver.GameServer;
@@ -44,7 +43,7 @@ public class StartCommand implements CommandExecutor {
             if (gameServer.getState() != GameState.LOBBY) return false;
 
             gameServer.setState(GameState.STARTING);
-            gameServer.generateWorld();
+            gameServer.regenerateWorld();
 
             Set<Gruppe> gruppen = gameServer.getGruppes();
             gruppen.forEach(this::calSpawns);
@@ -119,7 +118,7 @@ public class StartCommand implements CommandExecutor {
             gameServer.getBlocked().clear();
             gameServer.setState(GameState.LOBBY);
             try {
-                gameServer.zurNeuenWelt();
+                gameServer.copyChunks();
             } catch (WorldEditException e) {
                e.printStackTrace();
             }
