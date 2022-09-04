@@ -10,6 +10,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -98,22 +99,27 @@ public final class GameServer extends JavaPlugin {
         Random random = new Random();
         String worldname = "gameworld_round_" + round + "_" + random.nextInt();
         Bukkit.getScheduler().runTaskLater(this, () -> {
+            audience.sendActionBar(Component.text("Erstelle Nether...", StartCommand.YELLOW));
             gameworldNether = new WorldCreator(worldname+"_nether")
                     .environment(World.Environment.NETHER)
                     .createWorld();
-            Bukkit.getScheduler().runTaskLater(this, () -> {
-                gameworldEnd = new WorldCreator(worldname+"_end")
-                        .environment(World.Environment.THE_END)
-                        .createWorld();
-                Bukkit.getScheduler().runTaskLater(this, () -> {
-                    gameworld = new WorldCreator(worldname)
-                            .environment(World.Environment.NORMAL)
-                            .type(getWorldType(random))
-                            .createWorld();
-                    Bukkit.getScheduler().runTaskLater(this, runAfter,10L);
-                }, 10L);
-            },10L);
         },40L);
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            audience.sendActionBar(Component.text("Erstelle End...", StartCommand.YELLOW));
+            gameworldEnd = new WorldCreator(worldname+"_end")
+                    .environment(World.Environment.THE_END)
+                    .createWorld();
+        },80L);
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            audience.sendActionBar(Component.text("Erstelle Overworld...", StartCommand.YELLOW));
+            gameworld = new WorldCreator(worldname)
+                    .environment(World.Environment.NORMAL)
+                    .type(getWorldType(random))
+                    .createWorld();
+            audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
+
+            Bukkit.getScheduler().runTaskLater(this, runAfter,10L);
+        }, 120L);
 
     }
 
