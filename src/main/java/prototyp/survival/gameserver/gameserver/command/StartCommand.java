@@ -45,6 +45,8 @@ public class StartCommand implements CommandExecutor {
             if (gameServer.getState() != GameState.LOBBY) return false;
 
             gameServer.setState(GameState.STARTING);
+            gameServer.generateWorld();
+
             Set<Gruppe> gruppen = gameServer.getGruppes();
             gruppen.forEach(this::calSpawns);
             for (Gruppe gruppe : gruppen) {
@@ -54,7 +56,6 @@ public class StartCommand implements CommandExecutor {
                 gruppe.disableBeacons();
                 preparePlayers(gruppe);
             }
-            gameServer.discardOldWorld();
             gameServer.setState(GameState.RUNNING);
             System.out.println("State Running:" + gameServer.getState());
             timer.add(() -> {
@@ -108,6 +109,14 @@ public class StartCommand implements CommandExecutor {
         });
 
         lobbyTimer.add(() -> {
+            gameServer.getGruppes().forEach(gruppe -> {
+                gruppe.getPlayers().forEach(player -> {
+                    Location location = player.getLocation().clone();
+                    location.setWorld(gameServer.getLobbyWorld());
+                    player.teleport(location);
+                });
+            });
+
             gameServer.getBlocked().clear();
             gameServer.setState(GameState.LOBBY);
             try {

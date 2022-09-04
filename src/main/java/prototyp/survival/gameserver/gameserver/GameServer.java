@@ -1,7 +1,5 @@
 package prototyp.survival.gameserver.gameserver;
 
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
@@ -15,27 +13,27 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.BlockVector;
 import prototyp.survival.gameserver.gameserver.command.JoinCommand;
 import prototyp.survival.gameserver.gameserver.command.StartCommand;
 import prototyp.survival.gameserver.gameserver.data.GameState;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
 import prototyp.survival.gameserver.gameserver.listener.*;
 
-import java.security.PublicKey;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 @Getter
 public final class GameServer extends JavaPlugin {
 
     private World gameworld;
-    private World oldWorld = null;
     private int round = 0;
     @Setter
     private GameState state = GameState.LOBBY;
+
+    private World lobbyWorld;
 
     private Set<Gruppe> gruppes = new HashSet<>();
     private Set<Player> blocked = new HashSet<>();
@@ -65,10 +63,15 @@ public final class GameServer extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        gameworld = Bukkit.getWorlds().get(0);
+        if (Bukkit.getWorld("lobby") != null) {
+            lobbyWorld = Bukkit.getWorld("lobby");
+        } else {
+            lobbyWorld = Bukkit.createWorld(new WorldCreator("lobby"));
+        }
+
         Bukkit.getPluginManager().registerEvents(new MoveListener(this), this);
         Bukkit.getPluginManager().registerEvents(new PlayerDeathListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
+        Bukkit.getPluginManager().registerEvents(new JoinListener(this), this);
         Bukkit.getPluginManager().registerEvents(new QuitListener(this), this);
         Bukkit.getPluginManager().registerEvents(new AdvancementListener(this), this);
         Bukkit.getPluginCommand("join").setExecutor(new JoinCommand(this));
@@ -77,9 +80,14 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginCommand("skip").setExecutor(startCommand);
     }
 
-    public void discardOldWorld() {
-        Bukkit.unloadWorld(oldWorld,false);
+    public void generateWorld() {
+        Random random = new Random();
+        gameworld = new WorldCreator("world")
+//                .environment(World.Environment.values()[random.nextInt(3)])
+                .type(WorldType.values()[random.nextInt(WorldType.values().length)])
+                .createWorld();
     }
+
     public void zurNeuenWelt() throws WorldEditException {
         round++;
         BukkitWorld bukkitWorld = new BukkitWorld(gameworld);
@@ -96,15 +104,16 @@ public final class GameServer extends JavaPlugin {
             Operations.complete(forwardExtentCopy);
             gruppe.setClipboard(clipboard);
         }
-        Random random = new Random();
-        oldWorld = gameworld;
-        gameworld= new WorldCreator("gameworld_round_" + round+"_"+random.nextInt())
-//                .environment(World.Environment.values()[random.nextInt(3)])
-                .type(WorldType.values()[random.nextInt(WorldType.values().length)])
-                .createWorld();
 
-
-
+        Bukkit.unloadWorld(gameworld, false);
+        try {
+            Files.walk(gameworld.getWorldFolder().toPath())
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
