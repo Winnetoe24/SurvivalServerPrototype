@@ -122,6 +122,12 @@ public class StartCommand implements CommandExecutor {
 
     private void pasteChunks(Gruppe gruppe) {
         if (gruppe.getClipboard() == null) return;
+
+        gruppe.getSpawn().getWorld().setChunkForceLoaded((gruppe.getSpawn().getBlockX() - 16) / 16, (gruppe.getSpawn().getBlockZ() - 16) / 16, true);
+        gruppe.getSpawn().getWorld().setChunkForceLoaded((gruppe.getSpawn().getBlockX()) / 16, (gruppe.getSpawn().getBlockZ() - 16) / 16, true);
+        gruppe.getSpawn().getWorld().setChunkForceLoaded((gruppe.getSpawn().getBlockX()) / 16, (gruppe.getSpawn().getBlockZ()) / 16, true);
+        gruppe.getSpawn().getWorld().setChunkForceLoaded((gruppe.getSpawn().getBlockX() - 16) / 16, (gruppe.getSpawn().getBlockZ()) / 16, true);
+
         BukkitWorld bukkitWorld = new BukkitWorld(gameServer.getGameworld());
         try (EditSession editSession = WorldEdit.getInstance().newEditSession(bukkitWorld)) {
             Operation operation = new ClipboardHolder(gruppe.getClipboard())
