@@ -104,13 +104,15 @@ public final class GameServer extends JavaPlugin {
         Random random = new Random();
         String worldname = "gameworld_round_" + round + "_" + random.nextInt();
         audience.sendActionBar(Component.text("Erstelle Overworld...", StartCommand.YELLOW));
-        gameworld = new WorldCreator(worldname)
-                .environment(World.Environment.NORMAL)
-                .type(getWorldType(random))
-                .createWorld();
-        audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            gameworld = new WorldCreator(worldname)
+                    .environment(World.Environment.NORMAL)
+                    .type(getWorldType(random))
+                    .createWorld();
+            audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
 
-        Bukkit.getScheduler().runTaskLater(this, runAfter, 10L);
+            Bukkit.getScheduler().runTaskLater(this, runAfter, 1L);
+        });
     }
 
     public void generateNether() {
