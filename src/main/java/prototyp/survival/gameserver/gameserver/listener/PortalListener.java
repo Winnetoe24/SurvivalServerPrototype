@@ -12,8 +12,18 @@ public class PortalListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onEntityPortalReady(EntityPortalReadyEvent event) {
         switch (event.getPortalType()) {
-            case NETHER -> event.setTargetWorld(gameServer.getGameworldNether());
-            case ENDER -> event.setTargetWorld(gameServer.getGameworldEnd());
+            case NETHER -> {
+                if (event.getEntity().getWorld().equals(gameServer.getGameworld()))
+                event.setTargetWorld(gameServer.getGameworldNether());
+                else
+                    event.setTargetWorld(gameServer.getGameworld());
+            }
+            case ENDER -> {
+                if (event.getEntity().getWorld().equals(gameServer.getGameworld()))
+                    event.setTargetWorld(gameServer.getGameworldEnd());
+                else
+                    event.setTargetWorld(gameServer.getGameworld());
+            }
         }
     }
 }
