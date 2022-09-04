@@ -8,15 +8,24 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.util.RGBLike;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.css.RGBColor;
 import prototyp.survival.gameserver.gameserver.GameServer;
 import prototyp.survival.gameserver.gameserver.data.GameState;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
+import prototyp.survival.gameserver.gameserver.timer.Countdown;
 import prototyp.survival.gameserver.gameserver.timer.Timer;
 
 import java.util.*;
@@ -24,6 +33,11 @@ import java.util.concurrent.TimeUnit;
 
 
 public class StartCommand implements CommandExecutor {
+    public static final TextColor GREEN = TextColor.fromHexString("#47EB38");
+    public static final TextColor YELLOW = TextColor.fromHexString("#E1EB00");
+    public static final TextColor RED = TextColor.fromHexString("#EB0701");
+    public static final TextColor BLUE = TextColor.fromHexString("#0119EB");
+    public static final TextColor GRAY = TextColor.fromHexString("#B3B3B3");
     private final GameServer gameServer;
     public StartCommand(GameServer gameServer) {
 
@@ -31,11 +45,15 @@ public class StartCommand implements CommandExecutor {
 
         lobbyTimer = new Timer(gameServer, 1, TimeUnit.SECONDS);
         timer = new Timer(gameServer, 7, TimeUnit.MINUTES);
+        countdown = new Countdown(gameServer, 1, TimeUnit.MINUTES, 7);
         fightTimer = new Timer(gameServer, 7, TimeUnit.MINUTES);
+        fightCountdown = new Countdown(gameServer, 1, TimeUnit.MINUTES, 7);
     }
     private Timer timer;
     private Timer fightTimer;
     private Timer lobbyTimer;
+    private Countdown countdown;
+    private Countdown fightCountdown;
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
@@ -43,6 +61,7 @@ public class StartCommand implements CommandExecutor {
             if (gameServer.getState() != GameState.LOBBY) return false;
 
             gameServer.setState(GameState.STARTING);
+            broadcastStart();
             gameServer.regenerateWorld();
 
             Set<Gruppe> gruppen = gameServer.getGruppes();
@@ -56,12 +75,18 @@ public class StartCommand implements CommandExecutor {
                 preparePlayers(gruppe);
             }
             gameServer.setState(GameState.RUNNING);
+            broadcastRun();
+            countdown.add(integer -> broadcastTimeLeftToBeacons(7-integer));
             timer.add(() -> {
                 gameServer.getGruppes().forEach(Gruppe::enableBeacons);
 
+                countdown.end();
+                fightCountdown.add(integer -> broadcastTimeLeftToEnd(7-integer));
+                fightCountdown.start();
                 fightTimer.add(this::endGame);
                 fightTimer.start();
             });
+            countdown.start();
             timer.start();
         }else if (label.equals("skip") || command.getName().contains("skip")) {
             if (gameServer.getBlocked().contains((Player) sender)){
@@ -86,8 +111,34 @@ public class StartCommand implements CommandExecutor {
         return false;
     }
 
+    private void broadcastStart() {
+        gameServer.getAudience().sendActionBar(Component.text("Starte die nächste Runde...", YELLOW));
+    }
+
+    private void broadcastRun() {
+        gameServer.getAudience().sendActionBar(Component.join(JoinConfiguration.newlines(),
+                Component.text("Die Runde Beginnt!!!", GREEN, TextDecoration.BOLD),
+                Component.text("Noch 7 Minuten bis die Beacons angehen", GRAY, TextDecoration.ITALIC)));
+    }
+
+    private void broadcastTimeLeftToBeacons(int minutesLeft) {
+        gameServer.getAudience().sendActionBar(Component.text("Es sind noch "+minutesLeft+" Minuten bis die Beacons angehen", GRAY));
+    }
+    private void broadcastTimeLeftToEnd(int minutesLeft) {
+        gameServer.getAudience().sendActionBar(Component.text("Es sind noch "+minutesLeft+" Minuten bis die Runde endet", minutesLeft <= 3 ? RED : GRAY));
+    }
+
+    private void broadcastEnd() {
+        gameServer.getAudience().sendActionBar(Component.text("Spiel beendet", RED));
+    }
+
+    public void broadcastLobby() {
+        gameServer.getAudience().sendActionBar(Component.text("In der Lobby", BLUE));
+    }
+
     private void endGame() {
-        Bukkit.broadcastMessage("Spiel beendet");
+        broadcastEnd();
+        fightCountdown.end();
         gameServer.setState(GameState.ENDING);
         gameServer.getGruppes().forEach(gruppe -> {
             gruppe.getPlayers().forEach(player -> {
@@ -123,6 +174,7 @@ public class StartCommand implements CommandExecutor {
                e.printStackTrace();
             }
             System.out.println("return to Lobby");
+            broadcastLobby();
         });
         lobbyTimer.start();
     }
