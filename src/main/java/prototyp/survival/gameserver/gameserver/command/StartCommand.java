@@ -247,15 +247,17 @@ public class StartCommand implements CommandExecutor {
         Random random = new Random();
         boolean toNear = false;
         Location location;
+        int runs = 0;
         do {
             toNear = false;
             location = new Location(gameServer.getGameworld(), (random.nextInt(spawnBound * 2) - spawnBound) * 16, 60, (random.nextInt(spawnBound * 2) - spawnBound) * 16);
             for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
-                if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().getWorld().equals(gameServer.getGameworld()) && gameServerGruppe.getSpawn().distance(location) < 400) {
+                if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().getWorld().getUID().equals(gameServer.getGameworld().getUID()) && gameServerGruppe.getSpawn().distanceSquared(location) < 90000) {
                     toNear = true;
                     break;
                 }
             }
+            runs++;
         } while (toNear);
         if (gruppe.getSpawn() == null) {
             location = gameServer.getGameworld().getHighestBlockAt(location).getLocation();
@@ -263,6 +265,7 @@ public class StartCommand implements CommandExecutor {
             location.setY(gruppe.getSpawn().getY());
         }
         System.out.println("Location:" + location);
+        System.out.println("runs:"+runs);
         gruppe.setSpawn(location);
     }
 
