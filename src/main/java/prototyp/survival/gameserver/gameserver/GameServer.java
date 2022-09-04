@@ -92,7 +92,7 @@ public final class GameServer extends JavaPlugin {
         Random random = new Random();
         gameworld = new WorldCreator("world")
 //                .environment(World.Environment.values()[random.nextInt(3)])
-                .type(getValue(random))
+                .type(getWorldType(random))
                 .createWorld();
     }
 
@@ -114,7 +114,7 @@ public final class GameServer extends JavaPlugin {
         }
     }
 
-    private WorldType getValue(Random random) {
+    private WorldType getWorldType(Random random) {
         int i;
         WorldType value;
         do {
