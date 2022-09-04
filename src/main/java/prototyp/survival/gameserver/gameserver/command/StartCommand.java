@@ -122,9 +122,9 @@ public class StartCommand implements CommandExecutor {
     }
 
     private void broadcastRun() {
-        gameServer.getAudience().sendActionBar(Component.join(JoinConfiguration.newlines(),
+        gameServer.getAudience().sendActionBar(Component.join(JoinConfiguration.noSeparators(),
                 Component.text("Die Runde Beginnt!!!", GREEN, TextDecoration.BOLD),
-                Component.text("Noch 7 Minuten bis die Beacons angehen", GRAY, TextDecoration.ITALIC)));
+                Component.text(" Noch 7 Minuten bis die Beacons angehen", GRAY, TextDecoration.ITALIC)));
     }
 
     private void broadcastTimeLeftToBeacons(int minutesLeft) {

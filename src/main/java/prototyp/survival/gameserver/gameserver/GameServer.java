@@ -99,10 +99,18 @@ public final class GameServer extends JavaPlugin {
             }
         }
         Random random = new Random();
-        gameworld = new WorldCreator("world")
-//                .environment(World.Environment.values()[random.nextInt(3)])
+        String worldname = "gameworld_round_" + round + "_" + random.nextInt();
+        new WorldCreator(worldname)
+                .environment(World.Environment.NETHER)
+                .createWorld();
+        new WorldCreator(worldname)
+                .environment(World.Environment.THE_END)
+                .createWorld();
+        gameworld = new WorldCreator(worldname)
+                .environment(World.Environment.NORMAL)
                 .type(getWorldType(random))
                 .createWorld();
+
     }
 
     public void copyChunks() throws WorldEditException {

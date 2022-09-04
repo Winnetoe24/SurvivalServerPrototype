@@ -52,5 +52,6 @@ public class Countdown {
     public void end() {
         if (bukkitTask != null) bukkitTask.cancel();
         callbacks.clear();
+        round = 0;
     }
 }
