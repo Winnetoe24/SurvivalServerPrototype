@@ -25,18 +25,21 @@ public class PortalListener implements Listener {
 
                 }
                 else{
-                    if (gameServer.getGameworldEnd() == null) {
-                        gameServer.generateEnd();
-                        event.setCancelled(true);
-                    }else {
+
                         event.setTargetWorld(gameServer.getGameworld());
-                    }
+
 
                 }
             }
             case ENDER -> {
                 if (event.getEntity().getWorld().equals(gameServer.getGameworld()))
-                    event.setTargetWorld(gameServer.getGameworldEnd());
+
+                    if (gameServer.getGameworldEnd() == null) {
+                        gameServer.generateEnd();
+                        event.setCancelled(true);
+                    }else {
+                        event.setTargetWorld(gameServer.getGameworldEnd());
+                    }
                 else
                     event.setTargetWorld(gameServer.getGameworld());
             }
