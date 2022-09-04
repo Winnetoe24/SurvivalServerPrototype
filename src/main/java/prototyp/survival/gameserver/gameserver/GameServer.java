@@ -99,15 +99,15 @@ public final class GameServer extends JavaPlugin {
     }
 
     public void regenerateWorld() {
-
-
         Random random = new Random();
         String worldname = "gameworld_round_" + round + "_" + random.nextInt();
         audience.sendActionBar(Component.text("Erstelle Overworld...", StartCommand.YELLOW));
+        long l = System.currentTimeMillis();
         gameworld = new WorldCreator(worldname)
                 .environment(World.Environment.NORMAL)
                 .type(getWorldType(random))
                 .createWorld();
+        System.out.println("Worldgen:"+(System.currentTimeMillis()-l));
         audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
 
 
