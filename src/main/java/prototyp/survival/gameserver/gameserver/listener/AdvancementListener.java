@@ -3,6 +3,7 @@ package prototyp.survival.gameserver.gameserver.listener;
 import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent;
 import io.papermc.paper.advancement.AdvancementDisplay;
 import lombok.AllArgsConstructor;
+import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
@@ -28,8 +29,15 @@ public class AdvancementListener implements Listener {
 
     @EventHandler
     public void onPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
-        event.message(null); // TODO: Add group message
-        AdvancementDisplay.Frame frame = event.getAdvancement().getDisplay().frame();
+        Optional<Gruppe> current = gameServer.getGruppe(event.getPlayer());
+        if (current.isEmpty()) return;
+        Gruppe gruppe = current.get();
+        if (!gruppe.getFinishedAdvancements().add(event.getAdvancement())) {
+            event.message(null);
+        }
+        AdvancementDisplay advancementDisplay = event.getAdvancement().getDisplay();
+        if (advancementDisplay == null) return;
+        AdvancementDisplay.Frame frame = advancementDisplay.frame();
         event.getPlayer().setLevel(event.getPlayer().getLevel() + switch (frame) {
             case TASK -> 1;
             case CHALLENGE -> 5;

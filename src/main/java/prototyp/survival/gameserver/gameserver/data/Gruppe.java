@@ -7,10 +7,13 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class Gruppe {
     private int[][] chunks;
     private long points = 0;
     private BlockArrayClipboard clipboard;
+    private Set<Advancement> finishedAdvancements = new HashSet<>();
 
     public void disableBeacons() {
         World world = this.getSpawn().getWorld();
