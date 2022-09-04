@@ -95,17 +95,26 @@ public final class GameServer extends JavaPlugin {
             unloadWorld(gameworldEnd);
             Random random = new Random();
             String worldname = "gameworld_round_" + round + "_" + random.nextInt();
-            gameworldNether = new WorldCreator(worldname+"_nether")
-                    .environment(World.Environment.NETHER)
-                    .createWorld();
-            gameworldEnd = new WorldCreator(worldname+"_end")
-                    .environment(World.Environment.THE_END)
-                    .createWorld();
-            gameworld = new WorldCreator(worldname)
-                    .environment(World.Environment.NORMAL)
-                    .type(getWorldType(random))
-                    .createWorld();
-            Bukkit.getScheduler().runTask(this, runAfter);
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                gameworldNether = new WorldCreator(worldname+"_nether")
+                        .environment(World.Environment.NETHER)
+                        .createWorld();
+                Bukkit.getScheduler().runTaskLater(this, () -> {
+                    gameworldEnd = new WorldCreator(worldname+"_end")
+                            .environment(World.Environment.THE_END)
+                            .createWorld();
+                    Bukkit.getScheduler().runTaskLater(this, () -> {
+                        gameworld = new WorldCreator(worldname)
+                                .environment(World.Environment.NORMAL)
+                                .type(getWorldType(random))
+                                .createWorld();
+                        Bukkit.getScheduler().runTaskLater(this, runAfter,10L);
+                    }, 10L);
+                },10L);
+            },10L);
+
+
+
         });
 
 
