@@ -8,27 +8,25 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.util.RGBLike;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.css.RGBColor;
 import prototyp.survival.gameserver.gameserver.GameServer;
 import prototyp.survival.gameserver.gameserver.data.GameState;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
 import prototyp.survival.gameserver.gameserver.timer.Countdown;
 import prototyp.survival.gameserver.gameserver.timer.Timer;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 
@@ -41,6 +39,7 @@ public class StartCommand implements CommandExecutor {
     private final GameServer gameServer;
 
     private int skips = 0;
+
     public StartCommand(GameServer gameServer) {
 
         this.gameServer = gameServer;
@@ -51,6 +50,7 @@ public class StartCommand implements CommandExecutor {
         fightTimer = new Timer(gameServer, 7, TimeUnit.MINUTES);
         fightCountdown = new Countdown(gameServer, 1, TimeUnit.MINUTES, 7);
     }
+
     private Timer timer;
     private Timer fightTimer;
     private Timer lobbyTimer;
@@ -65,42 +65,37 @@ public class StartCommand implements CommandExecutor {
             skips = 0;
             gameServer.setState(GameState.STARTING);
             broadcastStart();
-            gameServer.regenerateWorld(() -> {
-                Set<Gruppe> gruppen = gameServer.getGruppes();
-                gruppen.forEach(this::calSpawns);
-                int ticksToWait = 1;
-                for (Gruppe gruppe : gruppen) {
-                  Bukkit.getScheduler().runTaskLater(gameServer, () -> {
-                      compassTarget(gruppe);
-                      pasteChunks(gruppe);
-                      buildSpawn(gruppe);
-                      setChunks(gruppe);
-                      gruppe.disableBeacons();
-                      preparePlayers(gruppe);
-                  }, ticksToWait);
-                  ticksToWait++;
-                }
-                Bukkit.getScheduler().runTaskLater(gameServer, () -> {
-                    gameServer.setState(GameState.RUNNING);
-                    broadcastRun();
-                    countdown.add(integer -> broadcastTimeLeftToBeacons(7-integer));
-                    timer.add(() -> {
-                        gameServer.getGruppes().forEach(Gruppe::enableBeacons);
+            gameServer.regenerateWorld();
+            Set<Gruppe> gruppen = gameServer.getGruppes();
+            gruppen.forEach(this::calSpawns);
+            for (Gruppe gruppe : gruppen) {
+                compassTarget(gruppe);
+                pasteChunks(gruppe);
+                buildSpawn(gruppe);
+                setChunks(gruppe);
+                gruppe.disableBeacons();
+                preparePlayers(gruppe);
 
-                        countdown.end();
-                        fightCountdown.add(integer -> broadcastTimeLeftToEnd(7-integer));
-                        fightCountdown.start();
-                        fightTimer.add(this::endGame);
-                        fightTimer.start();
-                    });
-                    countdown.start();
-                    timer.start();
-                },ticksToWait);
+            }
+
+            gameServer.setState(GameState.RUNNING);
+            broadcastRun();
+            countdown.add(integer -> broadcastTimeLeftToBeacons(7 - integer));
+            timer.add(() -> {
+                gameServer.getGruppes().forEach(Gruppe::enableBeacons);
+
+                countdown.end();
+                fightCountdown.add(integer -> broadcastTimeLeftToEnd(7 - integer));
+                fightCountdown.start();
+                fightTimer.add(this::endGame);
+                fightTimer.start();
             });
+            countdown.start();
+            timer.start();
 
 
-        }else if (label.equals("skip") || command.getName().contains("skip")) {
-            if (gameServer.getBlocked().contains((Player) sender)){
+        } else if (label.equals("skip") || command.getName().contains("skip")) {
+            if (gameServer.getBlocked().contains((Player) sender)) {
                 sender.sendMessage("Du bist schon ausgeschieden");
                 return false;
             }
@@ -136,10 +131,11 @@ public class StartCommand implements CommandExecutor {
     }
 
     private void broadcastTimeLeftToBeacons(int minutesLeft) {
-        gameServer.getAudience().sendActionBar(Component.text("Es sind noch "+minutesLeft+" Minuten bis die Beacons angehen", GRAY));
+        gameServer.getAudience().sendActionBar(Component.text("Es sind noch " + minutesLeft + " Minuten bis die Beacons angehen", GRAY));
     }
+
     private void broadcastTimeLeftToEnd(int minutesLeft) {
-        gameServer.getAudience().sendActionBar(Component.text("Es sind noch "+minutesLeft+" Minuten bis die Runde endet", minutesLeft <= 3 ? RED : GRAY));
+        gameServer.getAudience().sendActionBar(Component.text("Es sind noch " + minutesLeft + " Minuten bis die Runde endet", minutesLeft <= 3 ? RED : GRAY));
     }
 
     private void broadcastEnd() {
@@ -185,7 +181,7 @@ public class StartCommand implements CommandExecutor {
             try {
                 gameServer.copyChunks();
             } catch (WorldEditException e) {
-               e.printStackTrace();
+                e.printStackTrace();
             }
             System.out.println("return to Lobby");
             broadcastLobby();
@@ -212,7 +208,7 @@ public class StartCommand implements CommandExecutor {
         try (EditSession editSession = WorldEdit.getInstance().newEditSession(bukkitWorld)) {
             Operation operation = new ClipboardHolder(gruppe.getClipboard())
                     .createPaste(editSession)
-                    .to(BlockVector3.at(gruppe.getSpawn().getX()-16, -64, gruppe.getSpawn().getZ()-16))
+                    .to(BlockVector3.at(gruppe.getSpawn().getX() - 16, -64, gruppe.getSpawn().getZ() - 16))
                     // configure here
                     .build();
             Operations.complete(operation);
@@ -222,28 +218,28 @@ public class StartCommand implements CommandExecutor {
     }
 
     private void calSpawns(Gruppe gruppe) {
-        int spawnBound = 19 + gameServer.getGruppes().size()-1;
+        int spawnBound = 19 + gameServer.getGruppes().size() - 1;
 
-            Random random = new Random();
-            boolean toNear = false;
-            Location location;
-            do {
-                toNear = false;
-                location = new Location(gameServer.getGameworld(), (random.nextInt(spawnBound*2)-spawnBound)*16,60,(random.nextInt(spawnBound*2)-spawnBound)*16);
-                for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
-                    if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().getWorld().equals(gameServer.getGameworld()) && gameServerGruppe.getSpawn().distance(location) < 400) {
-                        toNear = true;
-                        break;
-                    }
+        Random random = new Random();
+        boolean toNear = false;
+        Location location;
+        do {
+            toNear = false;
+            location = new Location(gameServer.getGameworld(), (random.nextInt(spawnBound * 2) - spawnBound) * 16, 60, (random.nextInt(spawnBound * 2) - spawnBound) * 16);
+            for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
+                if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().getWorld().equals(gameServer.getGameworld()) && gameServerGruppe.getSpawn().distance(location) < 400) {
+                    toNear = true;
+                    break;
                 }
-            }while (toNear);
-            if (gruppe.getSpawn() == null){
-                location = gameServer.getGameworld().getHighestBlockAt(location).getLocation();
-            }else {
-                location.setY(gruppe.getSpawn().getY());
             }
-            System.out.println("Location:"+location);
-            gruppe.setSpawn(location);
+        } while (toNear);
+        if (gruppe.getSpawn() == null) {
+            location = gameServer.getGameworld().getHighestBlockAt(location).getLocation();
+        } else {
+            location.setY(gruppe.getSpawn().getY());
+        }
+        System.out.println("Location:" + location);
+        gruppe.setSpawn(location);
     }
 
     private void buildSpawn(Gruppe gruppe) {
@@ -264,7 +260,7 @@ public class StartCommand implements CommandExecutor {
         Chunk chunkAt2 = world.getChunkAt(gruppe.getSpawn().clone().add(-1, 0, 0));
         Chunk chunkAt3 = world.getChunkAt(gruppe.getSpawn().clone().add(0, 0, -1));
         Chunk chunkAt4 = world.getChunkAt(gruppe.getSpawn().clone().add(-1, 0, -1));
-        gruppe.setChunks(new int[][]{new int[] {chunkAt.getX(), chunkAt.getZ()}, new int[] {chunkAt2.getX(), chunkAt2.getZ()}, new int[] {chunkAt3.getX(), chunkAt3.getZ()}, new int[] {chunkAt4.getX(), chunkAt4.getZ()}});
+        gruppe.setChunks(new int[][]{new int[]{chunkAt.getX(), chunkAt.getZ()}, new int[]{chunkAt2.getX(), chunkAt2.getZ()}, new int[]{chunkAt3.getX(), chunkAt3.getZ()}, new int[]{chunkAt4.getX(), chunkAt4.getZ()}});
     }
 
     private void preparePlayers(Gruppe gruppe) {

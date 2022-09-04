@@ -98,7 +98,7 @@ public final class GameServer extends JavaPlugin {
         System.out.println("World discarded");
     }
 
-    public void regenerateWorld(Runnable runAfter) {
+    public void regenerateWorld() {
 
 
         Random random = new Random();
@@ -110,7 +110,6 @@ public final class GameServer extends JavaPlugin {
                 .createWorld();
         audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
 
-        Bukkit.getScheduler().runTaskLater(this, runAfter, 1L);
 
     }
 
@@ -132,14 +131,14 @@ public final class GameServer extends JavaPlugin {
     private void unloadWorld(World world) {
         if (world != null) {
             Bukkit.unloadWorld(world, false);
-            try {
-                Files.walk(world.getWorldFolder().toPath())
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Files.walk(world.getWorldFolder().toPath())
+//                        .sorted(Comparator.reverseOrder())
+//                        .map(Path::toFile)
+//                        .forEach(File::delete);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 
