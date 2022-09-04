@@ -68,28 +68,34 @@ public class StartCommand implements CommandExecutor {
             gameServer.regenerateWorld(() -> {
                 Set<Gruppe> gruppen = gameServer.getGruppes();
                 gruppen.forEach(this::calSpawns);
+                int ticksToWait = 1;
                 for (Gruppe gruppe : gruppen) {
-                    compassTarget(gruppe);
-                    pasteChunks(gruppe);
-                    buildSpawn(gruppe);
-                    setChunks(gruppe);
-                    gruppe.disableBeacons();
-                    preparePlayers(gruppe);
+                  Bukkit.getScheduler().runTaskLater(gameServer, () -> {
+                      compassTarget(gruppe);
+                      pasteChunks(gruppe);
+                      buildSpawn(gruppe);
+                      setChunks(gruppe);
+                      gruppe.disableBeacons();
+                      preparePlayers(gruppe);
+                  }, ticksToWait);
+                  ticksToWait++;
                 }
-                gameServer.setState(GameState.RUNNING);
-                broadcastRun();
-                countdown.add(integer -> broadcastTimeLeftToBeacons(7-integer));
-                timer.add(() -> {
-                    gameServer.getGruppes().forEach(Gruppe::enableBeacons);
+                Bukkit.getScheduler().runTaskLater(gameServer, () -> {
+                    gameServer.setState(GameState.RUNNING);
+                    broadcastRun();
+                    countdown.add(integer -> broadcastTimeLeftToBeacons(7-integer));
+                    timer.add(() -> {
+                        gameServer.getGruppes().forEach(Gruppe::enableBeacons);
 
-                    countdown.end();
-                    fightCountdown.add(integer -> broadcastTimeLeftToEnd(7-integer));
-                    fightCountdown.start();
-                    fightTimer.add(this::endGame);
-                    fightTimer.start();
-                });
-                countdown.start();
-                timer.start();
+                        countdown.end();
+                        fightCountdown.add(integer -> broadcastTimeLeftToEnd(7-integer));
+                        fightCountdown.start();
+                        fightTimer.add(this::endGame);
+                        fightTimer.start();
+                    });
+                    countdown.start();
+                    timer.start();
+                },ticksToWait);
             });
 
 
