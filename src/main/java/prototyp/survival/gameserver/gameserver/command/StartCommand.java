@@ -183,7 +183,7 @@ public class StartCommand implements CommandExecutor {
             }
             System.out.println("return to Lobby");
             broadcastLobby();
-            Bukkit.getScheduler().runTaskLater(gameServer, gameServer::discardWorld, 2L);
+            gameServer.discardWorld();
         });
         lobbyTimer.start();
     }

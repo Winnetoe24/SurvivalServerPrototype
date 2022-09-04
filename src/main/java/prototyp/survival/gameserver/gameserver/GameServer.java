@@ -95,24 +95,22 @@ public final class GameServer extends JavaPlugin {
         unloadWorld(gameworldEnd);
         gameworldNether = null;
         gameworldEnd = null;
+        System.out.println("World discarded");
     }
+
     public void regenerateWorld(Runnable runAfter) {
 
 
         Random random = new Random();
         String worldname = "gameworld_round_" + round + "_" + random.nextInt();
+        audience.sendActionBar(Component.text("Erstelle Overworld...", StartCommand.YELLOW));
+        gameworld = new WorldCreator(worldname)
+                .environment(World.Environment.NORMAL)
+                .type(getWorldType(random))
+                .createWorld();
+        audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
 
-        Bukkit.getScheduler().runTaskLater(this, () -> {
-            audience.sendActionBar(Component.text("Erstelle Overworld...", StartCommand.YELLOW));
-            gameworld = new WorldCreator(worldname)
-                    .environment(World.Environment.NORMAL)
-                    .type(getWorldType(random))
-                    .createWorld();
-            audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
-
-            Bukkit.getScheduler().runTaskLater(this, runAfter, 10L);
-        }, 120L);
-
+        Bukkit.getScheduler().runTaskLater(this, runAfter, 10L);
     }
 
     public void generateNether() {
