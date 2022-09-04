@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 public class StartCommand implements CommandExecutor {
     private final GameServer gameServer;
+
+    private int skips = 0;
     public StartCommand(GameServer gameServer) {
 
         this.gameServer = gameServer;
@@ -42,6 +44,7 @@ public class StartCommand implements CommandExecutor {
         if (label.equals("start") || command.getName().contains("start")) {
             if (gameServer.getState() != GameState.LOBBY) return false;
 
+            skips = 0;
             gameServer.setState(GameState.STARTING);
             gameServer.regenerateWorld();
 
@@ -80,8 +83,11 @@ public class StartCommand implements CommandExecutor {
                     }
                 }
             }
-            fightTimer.end();
-            endGame();
+            skips++;
+            if (skips >= playerGruppe.getPlayers().size()) {
+                fightTimer.end();
+                endGame();
+            }
         }
         return false;
     }
