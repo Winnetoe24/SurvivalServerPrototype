@@ -25,7 +25,7 @@ public class BallListener implements Listener {
 
     private GameServer gameServer;
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         ItemStack item = event.getItem();
         if (item == null) return;
