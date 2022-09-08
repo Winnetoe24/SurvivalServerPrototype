@@ -82,6 +82,7 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new QuitListener(this), this);
         Bukkit.getPluginManager().registerEvents(new AdvancementListener(this), this);
         Bukkit.getPluginManager().registerEvents(new PortalListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new BallListener(this), this);
         Bukkit.getPluginCommand("join").setExecutor(new JoinCommand(this));
         StartCommand startCommand = new StartCommand(this);
         Bukkit.getPluginCommand("start").setExecutor(startCommand);
