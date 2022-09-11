@@ -108,9 +108,6 @@ public final class GameServer extends JavaPlugin {
                 .type(getWorldType(random))
                 .createWorld();
         System.out.println("Worldgen:"+(System.currentTimeMillis()-l));
-        audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
-
-
     }
 
     public void generateNether() {
