@@ -18,6 +18,7 @@ public class QuitListener implements Listener {
         gameServer.getGruppe(event.getPlayer()).ifPresent(gruppe -> {
             gruppe.getPlayers().remove(event.getPlayer());
             if (gruppe.getPlayers().isEmpty()) {
+                gameServer.saveChunks(gruppe);
                 gameServer.getGruppes().remove(gruppe);
             }
         });

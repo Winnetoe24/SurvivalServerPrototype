@@ -1,6 +1,7 @@
 package prototyp.survival.gameserver.gameserver.data;
 
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Chunk;
@@ -23,7 +24,7 @@ public class Gruppe {
     private Location spawn;
     private int[][] chunks;
     private long points = 0;
-    private BlockArrayClipboard clipboard;
+    private Clipboard clipboard;
     private Set<Advancement> finishedAdvancements = new HashSet<>();
 
     public void disableBeacons() {
