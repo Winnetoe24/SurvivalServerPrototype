@@ -38,6 +38,7 @@ public class StartCommand implements CommandExecutor {
     public static final TextColor RED = TextColor.fromHexString("#EB0701");
     public static final TextColor BLUE = TextColor.fromHexString("#0119EB");
     public static final TextColor GRAY = TextColor.fromHexString("#B3B3B3");
+    public static final TextColor PURPLE = TextColor.fromHexString("#C702E3");
     private final GameServer gameServer;
 
     private int skips = 0;
