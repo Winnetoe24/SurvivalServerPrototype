@@ -3,6 +3,7 @@ package prototyp.survival.gameserver.gameserver;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.io.*;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
@@ -22,10 +23,13 @@ import prototyp.survival.gameserver.gameserver.data.Gruppe;
 import prototyp.survival.gameserver.gameserver.listener.*;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 
 @Getter
 public final class GameServer extends JavaPlugin {
@@ -87,6 +91,8 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginCommand("start").setExecutor(startCommand);
         Bukkit.getPluginCommand("skip").setExecutor(startCommand);
         startCommand.broadcastLobby();
+
+        loadChunks();
     }
 
     public void discardWorld() {
@@ -107,7 +113,7 @@ public final class GameServer extends JavaPlugin {
                 .environment(World.Environment.NORMAL)
                 .type(getWorldType(random))
                 .createWorld();
-        System.out.println("Worldgen:"+(System.currentTimeMillis()-l));
+        System.out.println("Worldgen:" + (System.currentTimeMillis() - l));
         audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
 
 
@@ -172,5 +178,69 @@ public final class GameServer extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        saveChunks();
+    }
+
+
+    private void loadChunks() {
+        File dataFolder = this.getDataFolder();
+        if (!dataFolder.exists()) dataFolder.mkdirs();
+        File[] files = dataFolder.listFiles((dir, name) -> name.endsWith(".chunks"));
+        if (files == null) return;
+        for (File file : files) {
+            loadChunk(file);
+        }
+    }
+
+    public void loadCunks(Gruppe gruppe) {
+        loadCunks(new File(this.getDataFolder(), gruppe.getGroupID() + ".chunks"), gruppe);
+    }
+
+
+    private void loadChunk(File file) {
+        String groupName = file.getName().replace(".chunks", "");
+        Gruppe gruppe = gruppes.stream().filter(lGruppe -> lGruppe.getGroupID().equals(groupName)).findAny().orElse(null);
+        loadCunks(file, gruppe);
+    }
+
+    private void loadCunks(File file, Gruppe gruppe) {
+        if (gruppe == null) return;
+        if (!file.exists()) return;
+        ClipboardFormat format = ClipboardFormats.findByFile(file);
+        if (format == null) return;
+        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+            gruppe.setClipboard(reader.read());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveChunks() {
+        File dataFolder = this.getDataFolder();
+        if (!dataFolder.exists()) dataFolder.mkdirs();
+        for (Gruppe gruppe : gruppes) {
+            saveChunks(gruppe);
+        }
+    }
+
+
+
+
+    public void saveChunks(Gruppe gruppe) {
+        if (gruppe == null) return;
+        File file = new File(this.getDataFolder(), gruppe.getGroupID()+".chunks");
+        if (gruppe.getClipboard() == null) return;
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getWriter(new FileOutputStream(file))) {
+                writer.write(gruppe.getClipboard());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
