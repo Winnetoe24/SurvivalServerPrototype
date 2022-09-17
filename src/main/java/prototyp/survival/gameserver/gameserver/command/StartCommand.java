@@ -8,6 +8,7 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.TextColor;
@@ -158,6 +159,9 @@ public class StartCommand implements CommandExecutor {
     }
 
     private void broadcastStart() {
+        BossBar bar = BossBar.bossBar(Component.empty(), 1, BossBar.Color.YELLOW, BossBar.Overlay.PROGRESS);
+        gameServer.getAudience().showBossBar(bar);
+
         gameServer.getAudience().sendActionBar(Component.text("Starte die nächste Runde...", YELLOW));
     }
 

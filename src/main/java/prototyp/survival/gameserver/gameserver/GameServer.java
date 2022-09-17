@@ -10,6 +10,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -34,8 +35,10 @@ public final class GameServer extends JavaPlugin {
     private World gameworldNether;
     private World gameworldEnd;
 
-    @Setter
+
     private Audience audience = Audience.empty();
+    private BossBar bossBar = BossBar.bossBar(Component.text("In der Lobby"), 1f, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
+
     private int round = 0;
     @Setter
     private GameState state = GameState.LOBBY;
@@ -70,6 +73,7 @@ public final class GameServer extends JavaPlugin {
     @Override
     public void onEnable() {
         audience = Audience.audience(Bukkit.getOnlinePlayers());
+        audience.showBossBar(bossBar);
         if (Bukkit.getWorld("lobby") != null) {
             lobbyWorld = Bukkit.getWorld("lobby");
         } else {
