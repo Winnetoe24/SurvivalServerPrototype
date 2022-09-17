@@ -25,6 +25,8 @@ public class Gruppe {
     private int[][] chunks;
     private long points = 0;
     private Clipboard clipboard;
+    private SpawnPositionState spawnPositionState = SpawnPositionState.NONE;
+    private boolean recalculateY = false;
     private Set<Advancement> finishedAdvancements = new HashSet<>();
 
     public void disableBeacons() {

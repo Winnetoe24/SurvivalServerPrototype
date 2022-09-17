@@ -211,6 +211,7 @@ public final class GameServer extends JavaPlugin {
         if (format == null) return;
         try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
             gruppe.setClipboard(reader.read());
+            gruppe.setRecalculateY(true);
         } catch (IOException e) {
             e.printStackTrace();
         }

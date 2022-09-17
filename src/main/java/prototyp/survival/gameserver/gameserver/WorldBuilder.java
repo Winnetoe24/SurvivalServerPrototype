@@ -13,6 +13,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import prototyp.survival.gameserver.gameserver.command.StartCommand;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
+import prototyp.survival.gameserver.gameserver.data.SpawnPositionState;
 import prototyp.survival.gameserver.gameserver.timer.StepTimer;
 
 import java.util.ArrayList;
@@ -26,19 +27,23 @@ public class WorldBuilder extends StepTimer {
         super(gameServer);
         List<Runnable> runnables = new ArrayList<>();
         runnables.add(genWorld());
-//        for (int x = 0; x < 5; x++) {
-//            for (int z = 0; z < 5; z++) {
-//                runnables.add(genChunk(x*16, z*16));
-//            }
-//        }
+        for (int x = 0; x < 8; x+=2) {
+            for (int z = 0; z < 8; z+=2) {
+                System.out.println(x+" "+z);
+                runnables.add(genChunk(x*16, z*16));
+                runnables.add(genChunk(x*16, -z*16));
+                runnables.add(genChunk(-x*16, z*16));
+                runnables.add(genChunk(-x*16, -z*16));
+            }
+        }
         runnables.add(purgeSpawnPositions());
         gameServer.getGruppes().forEach(gruppe -> runnables.add(calculateSpawnPosition(gruppe)));
         for (Gruppe gruppe : gameServer.getGruppes()) {
-            runnables.add(generateCompassTarget(gruppe));
             runnables.add(pasteChunks(gruppe));
             runnables.add(buildSpawn(gruppe));
             runnables.add(setChunks(gruppe));
             runnables.add(prepareGruppe(gruppe));
+            runnables.add(generateCompassTarget(gruppe));
         }
         runnables.add(callback);
         setRunnables(runnables.toArray(new Runnable[0]));
@@ -51,6 +56,7 @@ public class WorldBuilder extends StepTimer {
 
     private Runnable genChunk(int x, int z) {
         return () -> {
+            System.out.println("x:"+x+"z:"+z);
             gameServer.getAudience().sendActionBar(Component.text("Lade Chunk " + x + " " + z, StartCommand.YELLOW));
             gameServer.getGameworld().getChunkAt(gameServer.getGameworld().getSpawnLocation().getBlockX()+x, gameServer.getGameworld().getSpawnLocation().getBlockZ()+z).load(true);
         };
@@ -59,7 +65,9 @@ public class WorldBuilder extends StepTimer {
     private Runnable purgeSpawnPositions() {
         return () -> {
             for (Gruppe gruppe : gameServer.getGruppes()) {
-                gruppe.setSpawn(null);
+                if (gruppe.getSpawnPositionState() == SpawnPositionState.CALCULATED) {
+                    gruppe.setSpawnPositionState(SpawnPositionState.NOT_CALCULATED);
+                }
             }
         };
     }
@@ -83,7 +91,7 @@ public class WorldBuilder extends StepTimer {
                 long m2 = System.currentTimeMillis();
                 System.out.println("m2-m1:" + (m2 - m1));
                 for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
-                    if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawn().getWorld().getUID().equals(gameServer.getGameworld().getUID()) && gameServerGruppe.getSpawn().distanceSquared(location) < 90000) {
+                    if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawnPositionState().equals(SpawnPositionState.CALCULATED) && gameServerGruppe.getSpawn().distanceSquared(location) < 90000) {
                         toNear = true;
                         break;
                     }
@@ -93,8 +101,10 @@ public class WorldBuilder extends StepTimer {
                 runs++;
             } while (toNear);
             if (gruppe.getSpawn() == null) {
+                System.out.println("calculateSpawnHeight");
                 location.setY(gameServer.getGameworld().getHighestBlockYAt(location));
             } else {
+                System.out.println("useSpawnHeight:"+gruppe.getSpawn().getY());
                 location.setY(gruppe.getSpawn().getY());
             }
             long m4 = System.currentTimeMillis();
@@ -102,6 +112,7 @@ public class WorldBuilder extends StepTimer {
             System.out.println("Location:" + location);
             System.out.println("runs:" + runs);
             gruppe.setSpawn(location);
+            gruppe.setSpawnPositionState(SpawnPositionState.CALCULATED);
         };
     }
 
@@ -136,6 +147,11 @@ public class WorldBuilder extends StepTimer {
                 Operations.complete(operation);
             } catch (WorldEditException e) {
                 e.printStackTrace();
+            }
+
+            if (gruppe.isRecalculateY()) {
+                gruppe.getSpawn().setY(gameServer.getGameworld().getHighestBlockYAt(gruppe.getSpawn()));
+                gruppe.setRecalculateY(false);
             }
         };
     }
