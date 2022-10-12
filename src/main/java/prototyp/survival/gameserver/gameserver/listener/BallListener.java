@@ -30,6 +30,7 @@ public class BallListener implements Listener {
         ItemStack item = event.getItem();
         if (item == null) return;
         if (!item.getType().equals(Material.STICK)) return;
+        if (!item.getItemMeta().hasCustomModelData()) return;
         if (item.getItemMeta().getCustomModelData() != 1) return;
         List<Component> lore = item.lore();
         if (lore == null) return;
@@ -42,7 +43,7 @@ public class BallListener implements Listener {
         Location nearest = null;
         double distance = 0;
         for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
-            if ( gameServerGruppe.getSpawn() != null && (nearest == null || gameServerGruppe.getSpawn().distanceSquared(spawn) < distance)) {
+            if ( gameServerGruppe.getSpawn() != null && (nearest == null || gameServerGruppe.getSpawn().distanceSquared(spawn) < distance) && gameServerGruppe != gruppe) {
                 nearest = gameServerGruppe.getSpawn();
                 distance = nearest.distanceSquared(spawn);
             }

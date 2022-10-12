@@ -40,6 +40,8 @@ public class StartCommand implements CommandExecutor {
     public static final TextColor BLUE = TextColor.fromHexString("#0119EB");
     public static final TextColor GRAY = TextColor.fromHexString("#B3B3B3");
     public static final TextColor PURPLE = TextColor.fromHexString("#C702E3");
+    public static final int BUILD_DURATION = 7;
+    public static final int FIGHT_DURATION = 7;
     private final GameServer gameServer;
 
     private int skips = 0;
@@ -49,9 +51,9 @@ public class StartCommand implements CommandExecutor {
         this.gameServer = gameServer;
 
         lobbyTimer = new Timer(gameServer, 1, TimeUnit.SECONDS);
-        timer = new Timer(gameServer, 7, TimeUnit.MINUTES);
+        timer = new Timer(gameServer, BUILD_DURATION, TimeUnit.MINUTES);
         countdown = new Countdown(gameServer, 1, TimeUnit.MINUTES, 7);
-        fightTimer = new Timer(gameServer, 7, TimeUnit.MINUTES);
+        fightTimer = new Timer(gameServer, FIGHT_DURATION, TimeUnit.MINUTES);
         fightCountdown = new Countdown(gameServer, 1, TimeUnit.MINUTES, 7);
     }
 
@@ -70,6 +72,12 @@ public class StartCommand implements CommandExecutor {
             gameServer.setState(GameState.STARTING);
             long l1 = System.currentTimeMillis();
             broadcastStart();
+
+            lobbyTimer.end();
+            timer.end();
+            countdown.end();
+            fightTimer.end();
+            fightCountdown.end();
 
             new WorldBuilder(gameServer, () -> {
                 gameServer.setState(GameState.RUNNING);
@@ -119,32 +127,29 @@ public class StartCommand implements CommandExecutor {
     }
 
     private void broadcastStart() {
-        BossBar bar = BossBar.bossBar(Component.empty(), 1, BossBar.Color.YELLOW, BossBar.Overlay.PROGRESS);
-        gameServer.getAudience().showBossBar(bar);
-
-        gameServer.getAudience().sendActionBar(Component.text("Starte die nächste Runde...", YELLOW));
+        gameServer.sendBossBar(Component.text("Starte die nächste Runde...", YELLOW));
     }
 
     private void broadcastRun() {
-        gameServer.getAudience().sendActionBar(Component.join(JoinConfiguration.noSeparators(),
+        gameServer.sendBossBar(Component.join(JoinConfiguration.noSeparators(),
                 Component.text("Die Runde Beginnt!!!", GREEN, TextDecoration.BOLD),
                 Component.text(" Noch 7 Minuten bis die Beacons angehen", GRAY, TextDecoration.ITALIC)));
     }
 
     private void broadcastTimeLeftToBeacons(int minutesLeft) {
-        gameServer.getAudience().sendActionBar(Component.text("Es sind noch " + minutesLeft + " Minuten bis die Beacons angehen", GRAY));
+        gameServer.sendBossBar(Component.text("Es sind noch " + minutesLeft + " Minuten bis die Beacons angehen", GRAY), minutesLeft/((float) BUILD_DURATION));
     }
 
     private void broadcastTimeLeftToEnd(int minutesLeft) {
-        gameServer.getAudience().sendActionBar(Component.text("Es sind noch " + minutesLeft + " Minuten bis die Runde endet", minutesLeft <= 3 ? RED : GRAY));
+        gameServer.sendBossBar(Component.text("Es sind noch " + minutesLeft + " Minuten bis die Runde endet", minutesLeft <= 3 ? RED : GRAY),minutesLeft/((float) FIGHT_DURATION));
     }
 
     private void broadcastEnd() {
-        gameServer.getAudience().sendActionBar(Component.text("Spiel beendet", RED));
+        gameServer.sendBossBar(Component.text("Spiel beendet", RED));
     }
 
     public void broadcastLobby() {
-        gameServer.getAudience().sendActionBar(Component.text("In der Lobby", BLUE));
+        gameServer.sendBossBar(Component.text("In der Lobby", BLUE));
     }
 
     private void endGame() {

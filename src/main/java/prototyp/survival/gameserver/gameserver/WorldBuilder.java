@@ -11,6 +11,8 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.popcraft.chunky.Chunky;
+import org.popcraft.chunky.api.ChunkyAPI;
 import prototyp.survival.gameserver.gameserver.command.StartCommand;
 import prototyp.survival.gameserver.gameserver.data.Gruppe;
 import prototyp.survival.gameserver.gameserver.data.SpawnPositionState;
@@ -27,15 +29,6 @@ public class WorldBuilder extends StepTimer {
         super(gameServer);
         List<Runnable> runnables = new ArrayList<>();
         runnables.add(genWorld());
-        for (int x = 0; x < 8; x+=2) {
-            for (int z = 0; z < 8; z+=2) {
-                System.out.println(x+" "+z);
-                runnables.add(genChunk(x*16, z*16));
-                runnables.add(genChunk(x*16, -z*16));
-                runnables.add(genChunk(-x*16, z*16));
-                runnables.add(genChunk(-x*16, -z*16));
-            }
-        }
         runnables.add(purgeSpawnPositions());
         gameServer.getGruppes().forEach(gruppe -> runnables.add(calculateSpawnPosition(gruppe)));
         for (Gruppe gruppe : gameServer.getGruppes()) {
@@ -51,7 +44,20 @@ public class WorldBuilder extends StepTimer {
 
 
     private Runnable genWorld() {
-        return gameServer::regenerateWorld;
+        return () -> {
+            gameServer.regenerateWorld();
+            pause();
+            ChunkyAPI chunky = Bukkit.getServer().getServicesManager().load(ChunkyAPI.class);
+            World world = gameServer.getGameworld();
+            if (chunky.version() == 0) {
+                chunky.onGenerationProgress(generationProgressEvent -> gameServer.sendBossBar(Component.text("Generiere...", StartCommand.YELLOW),Math.min(generationProgressEvent.progress() / 100, 1f)));
+                chunky.onGenerationComplete(event ->{
+                    gameServer.getLogger().info("Generation completed for " + event.world());
+                    resume();
+                });
+                chunky.startTask(world.getName(), "square", 0, 0, 750, 750, "concentric");
+            }
+        };
     }
 
     private Runnable genChunk(int x, int z) {
@@ -80,26 +86,25 @@ public class WorldBuilder extends StepTimer {
 
             Random random = new Random();
             boolean toNear = false;
+            boolean toFar = false;
             Location location;
             int runs = 0;
-            long m1 = System.currentTimeMillis();
-            long m3;
             do {
                 toNear = false;
                 location = gameServer.getGameworld().getSpawnLocation().clone().add((random.nextInt(spawnBound * 2) - spawnBound) * 16, 0, (random.nextInt(spawnBound * 2) - spawnBound) * 16);
                 location.setY(60);
-                long m2 = System.currentTimeMillis();
-                System.out.println("m2-m1:" + (m2 - m1));
                 for (Gruppe gameServerGruppe : gameServer.getGruppes()) {
-                    if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawnPositionState().equals(SpawnPositionState.CALCULATED) && gameServerGruppe.getSpawn().distanceSquared(location) < 90000) {
+                    if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawnPositionState().equals(SpawnPositionState.CALCULATED) && gameServerGruppe.getSpawn().distanceSquared(location) < 22500) {
                         toNear = true;
                         break;
                     }
+                    if (gameServerGruppe.getSpawn() != null && gameServerGruppe.getSpawnPositionState().equals(SpawnPositionState.CALCULATED) && gameServerGruppe.getSpawn().distanceSquared(location) > 90000) {
+                        toFar = true;
+                        break;
+                    }
                 }
-                m3 = System.currentTimeMillis();
-                System.out.println("m3-m2:" + (m3 - m2));
                 runs++;
-            } while (toNear);
+            } while (toNear || toFar);
             if (gruppe.getSpawn() == null) {
                 System.out.println("calculateSpawnHeight");
                 location.setY(gameServer.getGameworld().getHighestBlockYAt(location));
@@ -107,8 +112,6 @@ public class WorldBuilder extends StepTimer {
                 System.out.println("useSpawnHeight:"+gruppe.getSpawn().getY());
                 location.setY(gruppe.getSpawn().getY());
             }
-            long m4 = System.currentTimeMillis();
-            System.out.println("m4-m3:" + (m4 - m3));
             System.out.println("Location:" + location);
             System.out.println("runs:" + runs);
             gruppe.setSpawn(location);

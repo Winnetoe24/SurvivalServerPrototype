@@ -40,6 +40,7 @@ public final class GameServer extends JavaPlugin {
     private World gameworldEnd;
 
 
+    @Setter
     private Audience audience = Audience.empty();
     private BossBar bossBar = BossBar.bossBar(Component.text("In der Lobby"), 1f, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
 
@@ -91,6 +92,7 @@ public final class GameServer extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new AdvancementListener(this), this);
         Bukkit.getPluginManager().registerEvents(new PortalListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BallListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new SpawnProtectionListener(this), this);
         Bukkit.getPluginCommand("join").setExecutor(new JoinCommand(this));
         StartCommand startCommand = new StartCommand(this);
         Bukkit.getPluginCommand("start").setExecutor(startCommand);
@@ -112,14 +114,14 @@ public final class GameServer extends JavaPlugin {
     public void regenerateWorld() {
         Random random = new Random();
         String worldname = "gameworld_round_" + round + "_" + random.nextInt();
-        audience.sendActionBar(Component.text("Erstelle Overworld...", StartCommand.YELLOW));
+        sendBossBar(Component.text("Erstelle Overworld...", StartCommand.YELLOW));
         long l = System.currentTimeMillis();
         gameworld = new WorldCreator(worldname)
                 .environment(World.Environment.NORMAL)
                 .type(getWorldType(random))
                 .createWorld();
         System.out.println("Worldgen:" + (System.currentTimeMillis() - l));
-        audience.sendActionBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
+        sendBossBar(Component.text("Fertig stellen...", StartCommand.YELLOW));
 
 
     }
@@ -184,6 +186,7 @@ public final class GameServer extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         saveChunks();
+        audience.hideBossBar(bossBar);
     }
 
 
@@ -230,11 +233,9 @@ public final class GameServer extends JavaPlugin {
     }
 
 
-
-
     public void saveChunks(Gruppe gruppe) {
         if (gruppe == null) return;
-        File file = new File(this.getDataFolder(), gruppe.getGroupID()+".chunks");
+        File file = new File(this.getDataFolder(), gruppe.getGroupID() + ".chunks");
         if (gruppe.getClipboard() == null) return;
         try {
             if (!file.exists()) {
@@ -248,5 +249,13 @@ public final class GameServer extends JavaPlugin {
             e.printStackTrace();
         }
 
+    }
+
+    public void sendBossBar(Component component) {
+        sendBossBar(component, 1F);
+    }
+
+    public void sendBossBar(Component component, float progress) {
+        audience.showBossBar(bossBar.name(component).progress(progress));
     }
 }

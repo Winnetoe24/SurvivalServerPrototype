@@ -26,5 +26,6 @@ public class JoinListener implements Listener {
             event.getPlayer().teleport(location);
         }
         gameServer.setAudience(Audience.audience(gameServer.getAudience(),event.getPlayer()));
+        gameServer.getAudience().showBossBar(gameServer.getBossBar());
     }
 }
